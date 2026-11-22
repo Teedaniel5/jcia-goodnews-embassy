@@ -70,8 +70,8 @@ def build_give():
     var fd=new FormData(e.target);var o=Object.fromEntries(fd.entries());o.Frequency=freq;o.at=new Date().toISOString();
     var g=JSON.parse(localStorage.getItem('jcia_givings')||'[]');g.push(o);localStorage.setItem('jcia_givings',JSON.stringify(g));
     var ok=document.getElementById('giveOk');ok.classList.remove('hidden');
-    ok.innerHTML='🙏 Thank you, '+(o.Name||'partner')+'! You chose <b>'+(o.Method)+'</b> — '+freq+' $'+o.Amount+' for '+(o.Purpose)+'. Complete the transaction on the '+o.Method+' gateway screen (or WhatsApp us on +263 78 000 0000 for bank details).';
-    window.open('https://wa.me/263780000000?text='+encodeURIComponent('GIVING\\nName: '+o.Name+'\\nType: '+o.Purpose+' ('+freq+')\\nAmount: $'+o.Amount+'\\nMethod: '+o.Method),'_blank');
+    ok.innerHTML='🙏 Thank you, '+(o.Name||'partner')+'! You chose <b>'+(o.Method)+'</b> — '+freq+' $'+o.Amount+' for '+(o.Purpose)+'. Complete the transaction on the '+o.Method+' gateway screen (or WhatsApp us on +263 77 482 7123 for bank details).';
+    window.open('https://wa.me/263774827123?text='+encodeURIComponent('GIVING\\nName: '+o.Name+'\\nType: '+o.Purpose+' ('+freq+')\\nAmount: $'+o.Amount+'\\nMethod: '+o.Method),'_blank');
   });
 })();
 </script>"""
@@ -224,7 +224,7 @@ def build_testimonies():
     localStorage.setItem('jcia_testimonies',JSON.stringify(all));
     document.getElementById('testOk').classList.remove('hidden');
     e.target.reset();
-    window.open('https://wa.me/263780000000?text='+encodeURIComponent('TESTIMONY SUBMISSION\\nName: '+fd.get('name')+'\\n'+fd.get('text')),'_blank');
+    window.open('https://wa.me/263774827123?text='+encodeURIComponent('TESTIMONY SUBMISSION\\nName: '+fd.get('name')+'\\n'+fd.get('text')),'_blank');
   });
 })();
 </script>"""

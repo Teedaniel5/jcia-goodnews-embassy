@@ -11,7 +11,7 @@ NAV = [
     ("movement.html", "JCIA Movement"), ("live.html", "Live"), ("academy.html", "Academy/Shop"),
     ("give.html", "Give"), ("contact.html", "Contact"),
 ]
-WHATSAPP = "263780000000"
+WHATSAPP = "263774827123"
 
 def header(title, desc):
     nav_html = "".join(
@@ -112,7 +112,7 @@ def footer():
           <input type="email" required placeholder="Your email address">
           <button class="btn btn-gold btn-sm">Subscribe</button>
         </form>
-        <p class="mt1">📍 Bulawayo, Zimbabwe<br>✉️ <a href="mailto:info@goodnewsembassy.org">info@goodnewsembassy.org</a><br>💬 <a href="https://wa.me/{WHATSAPP}">WhatsApp: +263 78 000 0000</a></p>
+        <p class="mt1">📍 Bulawayo, Zimbabwe<br>✉️ <a href="mailto:teedanielbrilliant@gmail.com">teedanielbrilliant@gmail.com</a><br>💬 <a href="https://wa.me/{WHATSAPP}">WhatsApp: +263 77 482 7123</a></p>
       </div>
     </div>
     <div class="footer-bottom">© {y} Jesus Christ Intelligence Agency (JCIA) — The Good News Embassy. All rights reserved. · <a href="admin.html">Admin</a></div>
@@ -421,8 +421,8 @@ def build_contact():
     <span class="eyebrow">Contact</span>
     <h2 class="section-title">We'd Love to Hear From You</h2>
     <div class="card mt2" style="padding:1.3rem">
-      <div class="flex"><div class="icon-chip">💬</div><div><b>WhatsApp (fastest)</b><p class="small muted">+263 78 000 0000 · Mon–Sat 9am–6pm</p></div></div>
-      <div class="flex mt1"><div class="icon-chip">✉️</div><div><b>Email</b><p class="small muted">info@goodnewsembassy.org</p></div></div>
+      <div class="flex"><div class="icon-chip">💬</div><div><b>WhatsApp (fastest)</b><p class="small muted">+263 77 482 7123 · Mon–Sat 9am–6pm</p></div></div>
+      <div class="flex mt1"><div class="icon-chip">✉️</div><div><b>Email</b><p class="small muted">teedanielbrilliant@gmail.com</p></div></div>
       <div class="flex mt1"><div class="icon-chip">📍</div><div><b>Location</b><p class="small muted">Bulawayo, Zimbabwe — the Embassy awaits you.</p></div></div>
     </div>
     <h3 class="mt2 mb1">Send a Message</h3>

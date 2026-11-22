@@ -110,7 +110,7 @@ def build_checkout():
     ok.classList.remove('hidden');
     ok.innerHTML='✅ Order received, '+order.name+'! "'+order.method+'" selected — access granted in <b>My Library</b>. '+
       (order.method==='Order via WhatsApp'
-        ? '<a class="btn btn-wa btn-sm mt1" target="_blank" rel="noopener" href="https://wa.me/263780000000?text='+encodeURIComponent('ORDER\\nName: '+order.name+'\\nMethod: WhatsApp\\nItems: '+order.items.join(', ')+'\\nTotal: $'+order.total)+'">Send order on WhatsApp →</a>'
+        ? '<a class="btn btn-wa btn-sm mt1" target="_blank" rel="noopener" href="https://wa.me/263774827123?text='+encodeURIComponent('ORDER\\nName: '+order.name+'\\nMethod: WhatsApp\\nItems: '+order.items.join(', ')+'\\nTotal: $'+order.total)+'">Send order on WhatsApp →</a>'
         : 'Complete payment on the '+order.method+' gateway screen (provider keys wired in config).');
     ok.insertAdjacentHTML('afterbegin','');
     setTimeout(function(){location.href='library.html';},3500);

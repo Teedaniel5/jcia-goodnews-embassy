@@ -29,7 +29,7 @@ def build_live():
     </div></div>
   </div>
   <div class="chat-panel">
-    <div class="chat-head"><span>💬 Live Chat &amp; Questions</span><a class="btn btn-wa btn-sm" href="https://wa.me/263780000000?text=Prayer%20request%20during%20service" target="_blank" rel="noopener">WhatsApp ↗</a></div>
+    <div class="chat-head"><span>💬 Live Chat &amp; Questions</span><a class="btn btn-wa btn-sm" href="https://wa.me/263774827123?text=Prayer%20request%20during%20service" target="_blank" rel="noopener">WhatsApp ↗</a></div>
     <div class="chat-body" id="chatBody">
       <div class="chat-msg them"><div class="who">Usher</div>Welcome to the Good News Embassy! Post your questions and prayer points below. 🙏</div>
       <div class="chat-msg them"><div class="who">Protocol</div>Keep it holy, kind and edifying. Questions will be read on air.</div>
@@ -137,7 +137,7 @@ def build_live():
     pf.reset();
     document.getElementById('prayerOk').classList.remove('hidden');
     paintWall();
-    if(shared){window.open('https://wa.me/263780000000?text='+encodeURIComponent('PRAYER REQUEST\\nName: '+fd.get('name')+'\\nRequest: '+fd.get('request')),'_blank');}
+    if(shared){window.open('https://wa.me/263774827123?text='+encodeURIComponent('PRAYER REQUEST\\nName: '+fd.get('name')+'\\nRequest: '+fd.get('request')),'_blank');}
   });}
   function paintWall(){
     var wall=document.getElementById('prayerWall'); if(!wall)return;

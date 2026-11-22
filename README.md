@@ -40,7 +40,7 @@ Complete, mobile-first, SEO-friendly static website for **Jesus Christ Intellige
 All placeholders live in two places:
 
 1. `assets/js/main.js` → `window.JCIA = { whatsapp, email, socials{facebook,youtube,instagram,tiktok}, live{youtubeId} }`
-2. Search-and-replace `263780000000` / `+263 78 000 0000` across `build.py`, then run `python3 build.py`.
+2. Search-and-replace `263774827123` / `+263 77 482 7123` across `build.py`, then run `python3 build.py`.
 
 Other real values to set:
 - **WhatsApp number** (ministry + soul-winner desk)
