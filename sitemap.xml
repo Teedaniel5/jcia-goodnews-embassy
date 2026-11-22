@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>/index.html</loc><priority>1.0</priority></url>
+<url><loc>/about.html</loc><priority>0.9</priority></url>
+<url><loc>/ministries.html</loc><priority>0.9</priority></url>
+<url><loc>/kids.html</loc><priority>0.8</priority></url>
+<url><loc>/youth.html</loc><priority>0.8</priority></url>
+<url><loc>/men.html</loc><priority>0.8</priority></url>
+<url><loc>/women.html</loc><priority>0.8</priority></url>
+<url><loc>/movement.html</loc><priority>0.9</priority></url>
+<url><loc>/live.html</loc><priority>1.0</priority></url>
+<url><loc>/academy.html</loc><priority>0.9</priority></url>
+<url><loc>/give.html</loc><priority>0.9</priority></url>
+<url><loc>/events.html</loc><priority>0.8</priority></url>
+<url><loc>/blog.html</loc><priority>0.8</priority></url>
+<url><loc>/testimonies.html</loc><priority>0.7</priority></url>
+<url><loc>/contact.html</loc><priority>0.7</priority></url>
+</urlset>

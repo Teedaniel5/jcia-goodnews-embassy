@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Events | JCIA | The Good News Embassy</title>
+<meta name="description" content="Services, crusades, trainings and conferences of the Good News Embassy — add to your calendar.">
+<meta property="og:title" content="Events — JCIA | The Good News Embassy">
+<meta property="og:description" content="Services, crusades, trainings and conferences of the Good News Embassy — add to your calendar.">
+<meta property="og:image" content="assets/img/apostle-hero.jpg">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0a1128">
+<link rel="icon" type="image/png" href="assets/img/jcia-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+<div class="topbar">⚡ &nbsp;<a href="live.html">Sundays 9AM · Wednesdays 6PM — Join the Live Service</a>&nbsp;<a href="give.html" style="margin-left:.6rem">Give</a></div>
+<header class="header">
+  <div class="container header-inner">
+    <a class="brand" href="index.html">
+      <img src="assets/img/jcia-logo.png" alt="JCIA logo">
+      <span class="brand-txt"><span class="brand-name">JCIA</span><br><span class="brand-tag">The Good News Embassy</span></span>
+    </a>
+    <nav class="nav" aria-label="Main"><a href="index.html">Home</a><a href="about.html">About</a><a href="ministries.html">Ministries</a><a href="movement.html">JCIA Movement</a><a href="live.html">Live</a><a href="academy.html">Academy/Shop</a><a href="give.html">Give</a><a href="contact.html">Contact</a></nav>
+    <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</header>
+<div class="follow-bar">
+  <div class="container fb-inner">
+    <span>Follow the Embassy:</span>
+    <a class="social-btn" data-social="facebook" href="#"></a>
+    <a class="social-btn" data-social="youtube" href="#"></a>
+    <a class="social-btn" data-social="instagram" href="#"></a>
+    <a class="social-btn" data-social="tiktok" href="#"></a>
+    <a class="btn btn-wa btn-sm" href="https://wa.me/263780000000">💬 WhatsApp</a>
+  </div>
+</div>
+<main>
+<section class="page-head"><div class="container">
+<div class="crumbs"><a href="index.html">Home</a> / Events</div>
+<h1>Events Calendar — Services, Crusades, Trainings, Conferences</h1><p>Add any event straight to your phone or Google Calendar.</p></div></section>
+<section class="section"><div class="container">
+  <div class="tabs">
+    <button class="tab on" data-f="all">All</button><button class="tab" data-f="Service">Services</button>
+    <button class="tab" data-f="Crusade">Crusades</button><button class="tab" data-f="Training">Trainings</button>
+    <button class="tab" data-f="Conference">Conferences</button><button class="tab" data-f="Outreach">Outreaches</button>
+  </div>
+  <div class="grid" id="eventList" style="gap:.8rem"></div>
+</div></section>
+<script>
+(function(){
+  var EV=[
+    [0,"2025-12-15","Sunday Main Service","Service","9:00 AM","The Embassy, Bulawayo","Preaching the gospel, healing and the prophetic — Mark 16:15-18.","BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//JCIA Good News Embassy//EN\nBEGIN:VEVENT\nUID:jcia-0@goodnewsembassy.org\nDTSTART:20251215T900AM00\nSUMMARY:Sunday Main Service — JCIA Good News Embassy\nLOCATION:The Embassy, Bulawayo\nDESCRIPTION:Preaching the gospel, healing and the prophetic — Mark 16:15-18.\nEND:VEVENT\nEND:VCALENDAR\n"],
+    [1,"2025-12-17","Prophetic Service","Service","6:00 PM","The Embassy, Bulawayo","Word, prophecy and prayer line.","BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//JCIA Good News Embassy//EN\nBEGIN:VEVENT\nUID:jcia-1@goodnewsembassy.org\nDTSTART:20251217T600PM00\nSUMMARY:Prophetic Service — JCIA Good News Embassy\nLOCATION:The Embassy, Bulawayo\nDESCRIPTION:Word, prophecy and prayer line.\nEND:VEVENT\nEND:VCALENDAR\n"],
+    [2,"2025-12-27","JCIA Crusade — Bulawayo CBD","Crusade","10:00 AM","Bulawayo City Centre","Open-air crusade: salvation, healing, deliverance, miracles & wonders.","BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//JCIA Good News Embassy//EN\nBEGIN:VEVENT\nUID:jcia-2@goodnewsembassy.org\nDTSTART:20251227T1000AM00\nSUMMARY:JCIA Crusade — Bulawayo CBD — JCIA Good News Embassy\nLOCATION:Bulawayo City Centre\nDESCRIPTION:Open-air crusade: salvation, healing, deliverance, miracles & wonders.\nEND:VEVENT\nEND:VCALENDAR\n"],
+    [3,"2026-01-03","Street Evangelism","Outreach","9:00 AM","Bulawayo CBD","JCIA Movement soul-winning deployment.","BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//JCIA Good News Embassy//EN\nBEGIN:VEVENT\nUID:jcia-3@goodnewsembassy.org\nDTSTART:20260103T900AM00\nSUMMARY:Street Evangelism — JCIA Good News Embassy\nLOCATION:Bulawayo CBD\nDESCRIPTION:JCIA Movement soul-winning deployment.\nEND:VEVENT\nEND:VCALENDAR\n"],
+    [4,"2026-01-24","Discipleship Training Intensive","Training","9:00 AM","The Embassy + Online","Spiritual Intelligence Activation training day.","BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//JCIA Good News Embassy//EN\nBEGIN:VEVENT\nUID:jcia-4@goodnewsembassy.org\nDTSTART:20260124T900AM00\nSUMMARY:Discipleship Training Intensive — JCIA Good News Embassy\nLOCATION:The Embassy + Online\nDESCRIPTION:Spiritual Intelligence Activation training day.\nEND:VEVENT\nEND:VCALENDAR\n"],
+    [5,"2026-02-14","Kingdom Stars Conference","Conference","9:00 AM","The Embassy, Bulawayo","Annual conference with Apostle Tee Daniel Brilliant & President Audrey Brilliant.","BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//JCIA Good News Embassy//EN\nBEGIN:VEVENT\nUID:jcia-5@goodnewsembassy.org\nDTSTART:20260214T900AM00\nSUMMARY:Kingdom Stars Conference — JCIA Good News Embassy\nLOCATION:The Embassy, Bulawayo\nDESCRIPTION:Annual conference with Apostle Tee Daniel Brilliant & President Audrey Brilliant.\nEND:VEVENT\nEND:VCALENDAR\n"],
+
+  ];
+  var list=document.getElementById('eventList');
+  var months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  function paint(f){
+    list.innerHTML=EV.filter(function(e){return f==='all'||e[3]===f;}).map(function(e){
+      var d=e[1].split('-');
+      return '<div class="card"><div class="card-body event-card">'+
+        '<div class="event-date"><b>'+parseInt(d[2],10)+'</b><span>'+months[parseInt(d[1],10)-1]+'</span><span style="letter-spacing:0">'+d[0].slice(2)+'</span></div>'+
+        '<div style="flex:1;min-width:0"><div class="flex spread"><b style="font-family:var(--font-head)">'+e[2]+'</b><span class="pill">'+e[3]+'</span></div>'+
+        '<p class="small muted">🕐 '+e[4]+' · 📍 '+e[5]+'</p><p class="small">'+e[6]+'</p>'+
+        '<button class="btn btn-outline btn-sm mt1" data-ics="'+e[0]+'">🗓 Add to Calendar</button></div></div></div>';
+    }).join('');
+    document.querySelectorAll('[data-ics]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var e=EV[+btn.dataset.ics];
+        var blob=new Blob([e[7]],{type:'text/calendar'});
+        var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+        a.download=e[2].replace(/[^a-z0-9]+/gi,'-')+'.ics';a.click();
+      });
+    });
+  }
+  document.querySelectorAll('.tabs .tab').forEach(function(t){t.addEventListener('click',function(){
+    document.querySelectorAll('.tabs .tab').forEach(function(x){x.classList.remove('on');});
+    t.classList.add('on');paint(t.dataset.f);
+  });});
+  paint('all');
+})();
+</script></main>
+<div class="cart-bar">
+  <span>🛒 <b data-cart-count>0</b> item(s) — <b data-cart-total>$0</b></span>
+  <a class="btn btn-gold" href="checkout.html">Checkout →</a>
+</div>
+<a class="wa-float" href="https://wa.me/263780000000" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"></a>
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <img src="assets/img/good-news-embassy.png" alt="Good News Embassy" style="width:170px;margin-bottom:1rem;background:#fff;border-radius:10px;padding:.4rem">
+        <p style="margin-bottom:.3rem"><b style="color:#fff">JESUS CHRIST INTELLIGENCE AGENCY</b><br>The Good News Embassy</p>
+        <p>Redeemed souls, raised as Kingdom Stars — from Bulawayo, Zimbabwe to the Nations.</p>
+        <div class="social-row mt1">
+          <a class="social-btn" data-social="facebook" href="#"></a>
+          <a class="social-btn" data-social="youtube" href="#"></a>
+          <a class="social-btn" data-social="instagram" href="#"></a>
+          <a class="social-btn" data-social="tiktok" href="#"></a>
+        </div>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <div class="footer-links">
+          <a href="about.html">About the Ministry</a>
+          <a href="ministries.html">Ministries</a>
+          <a href="movement.html">JCIA Movement</a>
+          <a href="live.html">Watch Live</a>
+          <a href="events.html">Events Calendar</a>
+          <a href="blog.html">Daily Devotional</a>
+          <a href="testimonies.html">Testimonies</a>
+        </div>
+      </div>
+      <div>
+        <h4>Get Involved</h4>
+        <div class="footer-links">
+          <a href="give.html">Give / Partner</a>
+          <a href="academy.html">JCIA Academy Shop</a>
+          <a href="account.html">Become a Member</a>
+          <a href="movement.html#soulwinner">Be a Soul Winner</a>
+          <a href="live.html#prayer">Send a Prayer Request</a>
+          <a href="contact.html">Contact Us</a>
+        </div>
+      </div>
+      <div>
+        <h4>Newsletter — The Good News</h4>
+        <p style="margin-bottom:.8rem">Get daily devotionals and prophetic highlights.</p>
+        <form class="newsletter" data-newsletter>
+          <input type="email" required placeholder="Your email address">
+          <button class="btn btn-gold btn-sm">Subscribe</button>
+        </form>
+        <p class="mt1">📍 Bulawayo, Zimbabwe<br>✉️ <a href="mailto:info@goodnewsembassy.org">info@goodnewsembassy.org</a><br>💬 <a href="https://wa.me/263780000000">WhatsApp: +263 78 000 0000</a></p>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 Jesus Christ Intelligence Agency (JCIA) — The Good News Embassy. All rights reserved. · <a href="admin.html">Admin</a></div>
+  </div>
+</footer>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/store.js"></script>
+<script>JCIAStore && JCIAStore.paintCartBar();</script>
+</body>
+</html>
