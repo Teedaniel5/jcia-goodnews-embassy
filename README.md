@@ -1,81 +1,75 @@
 # JCIA — The Good News Embassy · Website
 
 Complete, mobile-first, SEO-friendly static website for **Jesus Christ Intelligence Agency (JCIA) — The Good News Embassy**, Bulawayo, Zimbabwe.
+Phase 2 adds **membership, classes, partners lounge, role-gated admin, the JCIA Assistant (Gemini AI), automatic giving flow and site-wide editing — with no coding**.
+
+Live: https://jcia-goodnews-embassy.vercel.app · WhatsApp **+263 77 482 7123** · teedanielbrilliant@gmail.com
 
 ## Pages
 
 | Page | Purpose |
 |---|---|
-| `index.html` | Hero ("WELCOME TO THE GOOD NEWS EMBASSY"), vision/mission, Apostle, ministries, events, social hub, testimonies |
+| `index.html` | Hero ("WELCOME TO THE GOOD NEWS EMBASSY"), vision/mission, Apostle (gold frame), ministries, events, social hub, testimonies **slider** |
 | `about.html` | Story, vision, mission, full Apostle Tee Daniel Brilliant profile, President Audrey Brilliant, beliefs |
-| `ministries.html` | Ministry hub |
-| `kids.html / youth.html / men.html / women.html / movement.html` | Each ministry: leader, meeting times, gallery, WhatsApp join, description. `movement.html` adds the **I Want To Be A Soul Winner** form, outreach locations map and crusades list |
-| `live.html` | Embedded YouTube/Facebook Live player, **LIVE NOW** badge + countdown, live chat, prayer request form (private/public), prayer wall, testimonies, social hub + per-service platform links |
-| `academy.html` | JCIA Academy store — courses, eBooks, audios, videos, PDFs, PowerPoint presentations; tabbed catalogue, cart |
-| `checkout.html` | Cart + PayPal / Stripe / Paynow / EcoCash / Mukuru / WhatsApp order |
-| `library.html` | My Library — purchased products, course player, modules, progress bar, quiz, certificate |
-| `account.html` | Free vs Disciple ($12/m) membership, email signup (Google-ready) |
-| `give.html` | Tithe / Offering / Seed / Partnership — one-time & monthly, amount chips, all payment methods |
-| `events.html` | Events calendar (services, crusades, trainings, conferences) with **Add to Calendar (.ics)** |
-| `blog.html` | Blog / daily devotional |
-| `testimonies.html` | Public wall + submission (admin-approved) |
-| `contact.html` | WhatsApp, email, location (Bulawayo), map, service times |
-| `admin.html` | Admin dashboard |
+| `ministries.html` + `kids/youth/men/women/movement.html` | Leader, meeting times, gallery, WhatsApp join. `movement.html` adds "**I Want To Be A Soul Winner**" form + outreach map + crusades |
+| `live.html` | Embedded player, **LIVE NOW** badge + countdown, live chat, prayer requests (private/public), prayer wall, social hub — dashboard ↔ page share one state |
+| `academy.html` | JCIA Academy store with **visibility-aware** cards (everyone → partner levels) |
+| `checkout.html` | PayPal, Stripe, Paynow, EcoCash, Mukuru, **Bank Transfer** (details shown), WhatsApp order · 8% gateway-failure simulation with **retry (no lost sale)** |
+| `library.html` / `dashboard.html` | My Library + **Member Dashboard**: Profile, Library, Giving History, Membership Class, Courses Progress, Notifications |
+| `account.html` | Signup/Login: **Email+Password, Google-ready, WhatsApp-number 6-digit-code flow** · profile: Name, Country, City, WhatsApp, Gender, DOB, Photo |
+| `partners.html` | 🔥 NEW — gold **PARTNERS LOUNGE**: per-level vault (Seed → Covenant → Kingdom → Embassy → Global), Zoom links, downloads; Sons of the Prophet see everything |
+| `social.html` | 🔥 NEW — Social Hub: all 4 platforms, follower counts, follow buttons |
+| `give.html` | Tithe/Offering/Seed/Partnership/Building Fund/Missions · reference code · **"I HAVE SENT" proof upload → admin approval → receipt** |
+| `events.html` · `blog.html` · `testimonies.html` · `contact.html` | Calendar w/ .ics · devotionals · approved testimony wall · contact |
+| `admin.html` | **Role-gated Super Admin dashboard** (see below) |
 
-## Admin dashboard (`admin.html`)
+## Admin dashboard (`admin.html`) — role gated
 
-- 🔴 **Go Live**: on/off + YouTube video ID / Facebook URL + **per-service platform checkboxes (Facebook / YouTube / Instagram / TikTok)** with Restream multi-stream notes → the Live page updates instantly (badge, embedded player, watch links).
-- 🎓 **Products**: publish new products (title, price USD, category, description, cover, file URL).
-- 💰 **Sales**: orders + giving tables and KPI totals.
-- 👥 **Members** + newsletter subscribers.
-- ✨ **Testimonies**: approve / unpublish / delete before they show on the wall.
-- 🙏 **Prayer requests**: view private & public, reply via WhatsApp.
-- 🗓 **Events**: add events to the calendar.
-- 📣 **Notify**: broadcast push/email/WhatsApp to members.
+**Bootstrap:** first login with `teedanielbrilliant@gmail.com` or `audreybrilliant@gmail.com` (any password ≥ 4 chars the first time) creates the Super Admin. Other members can be assigned roles viaMembers ▸ 🛡 Role. Roles and their tabs:
 
-> The demo runs on `localStorage` (single browser). For production multi-user, connect Firebase or Supabase and a small backend (see "Upgrading" below). All pages already call the right data helpers (`window.JCIAStore.db`), so the swap is contained.
+| Role | Sees |
+|---|---|
+| Super Admin / President | Everything (Apostle + Audrey) |
+| Media Admin | Go Live · Upload/Products · Edit Site · Notify · Assistant |
+| Finance Admin | Sales · Giving & Proofs |
+| Membership Admin | Members · Testimonies · Prayer Requests |
 
-## Before go-live — replace placeholders
+Panels: 🔴 Go Live (isLive + YouTube ID + Facebook URL + Facebook/YouTube/Instagram/TikTok ON-OFF per service) · 👥 Members (search by name/country/class, members by country & city, one-click **class + level + role** changes, block/unblock/remove, CSV export) · 📚 Upload **ANY file (PDF/MP3/MP4/PPT/PPTX/DOC/DOCX/XLS/JPG/PNG/ZIP ≤ 500MB)** with price, category, **visibility** (Everyone / General / Servants / Sons / Partners Only / specific Partner Level), cover + crop position/size/frame, replace & delete · ✏️ Edit Site (hero, vision, mission, apostle bio, service times, contact, social URLs + follower counts + YouTube Live ID, giving details, Academy starter prices) · 💰 Sales · 🙏 Giving & Proofs (approve → receipt notification) · ✨ Testimonies · 🕊 Prayer Requests · 🗓 Events (visibility-aware) · 📰 Blog · 📣 Notify (presets, Push/Email/WhatsApp, per-class audience) · 🤖 JCIA Assistant (Gemini key, personality, greeting, forbidden topics, FAQ trainer, live chat history) · 🗄 Backup (CSV + full JSON).
 
-All placeholders live in two places:
+**"✏️ Edit This Page"** floats on every page — admins only.
 
-1. `assets/js/main.js` → `window.JCIA = { whatsapp, email, socials{facebook,youtube,instagram,tiktok}, live{youtubeId} }`
-2. Search-and-replace `263774827123` / `+263 77 482 7123` across `build.py`, then run `python3 build.py`.
+## Membership classes & visibility
 
-Other real values to set:
-- **WhatsApp number** (ministry + soul-winner desk)
-- **Social URLs** (Facebook, YouTube, Instagram, TikTok)
-- **YouTube Live ID** (or use Admin → Go Live)
-- **Service times** (build.py ministry data + footer topbar)
-- **Payfast gateway keys** (below)
+`JCIA_DB.CLASSES`: **Sons of the Prophet** (Son → Senior Son → Chief Son) · **Partners** (Seed → Covenant → Kingdom → Embassy → Global) · **Servants** (Ushers, Media, Choir, Intercessors, Evangelism Team, Kids Teachers, Protocol) · **General Congregation**. Members see only what their class allows everywhere (shop, library, downloads, events, products); upgrades trigger a congratulations popup that unlocks new content (`partners-level gates` checked in `JCIA_DB.canView`).
 
-## Payments
+## JCIA Assistant (Gemini)
 
-Checkout and Give pages support **PayPal, Stripe (card), Paynow, EcoCash, Mukuru** plus a **WhatsApp order** fallback that composes the full order/giving details to the ministry number.
+Floating gold JCIA-logo button on every page. Answers from a built-in ministry knowledge base (vision, mission, times, joining, giving, partnership, courses, prayer, directions…) and uses **Gemini** when a key is set: Admin ▸ 🤖 JCIA Assistant ▸ paste key (or `localStorage.jcia_gemini_key`). It recommends courses by member level, collects prayer requests & testimonies to the admin, and follows the personality/forbidden-topics set by admin. At production, proxy the Gemini call through a serverless function so the key is never in the browser.
 
-To wire real money: create a Stripe Payment Link or PayPal checkout button per product, or a backend endpoint that creates the charge and then calls the "grant access" hook (`JCIAStore.grant(id)` client-side today). Paynow/EcoCash/Mukuru work the same way via their merchant APIs. Since this is a static site with no secrets, do key-holding on the server or use hosted payment links — never embed secret keys in these files.
+## Production wiring (demo → real)
 
-## Logins
+The demo stores data in `localStorage` (single browser) and simulates uploads/payments so **nothing is faked as live when it isn't**. Contained swap points, all behind `assets/js/jcia-db.js`:
 
-Email signup works in demo mode (localStorage). For **Google sign-in + real accounts**, add Firebase Auth and replace the handler in `account.html` (`Continue with Google` button is pre-wired). Guard `admin.html` with Firebase Auth custom claim `admin: true` before public launch.
+- **Auth & database** — Firebase Auth (Google provider is already button-ready) + Firestore; replace the `J.*` methods (members, session, content). Use auth custom claims for `adminRole` and *deny rules* on `memberClass`.
+- **Security (Partner files)** — partner-gated items are already hidden from shop, library and download counts; download links for partner-visibility products redirect to `partners.html`. At production, never ship public URLs: store files in Firebase Storage / Cloudinary with **signed, expiring URLs generated from a server after a server-side class check**.
+- **Payments** — insert hosted payment links / a checkout endpoint in `checkout.html` + `give.html`; call the existing `grant`/receipt hooks after server-side confirmation. Bank Transfer + proofs work end-to-end in demo.
+- **Uploads (500MB)** — the admin uploader validates size and shows progress; connect Firebase Storage / Cloudinary resumable uploads at the marked spot.
+- **Receipts & notifications** — EmailJS / Firebase Functions email + WhatsApp Cloud API at the `D.notify` and wa.me deep links' call points.
+- **Push notifications** — FCM keys off the same `notify()` entries.
 
-## Live chat
+## Run / build
 
-Demo chat is device-local. For true multi-user chat during service, mount Firebase Realtime Database or Supabase Realtime on `#chatBody` (structure is ready: `{who, text, at}`).
+```bash
+python3 build.py      # regenerates all pages from build.py + pages_*.py
+python3 -m http.server 8000
+```
 
-## Upgrading to full content management
+Deployed by Vercel automatically from `main`.
 
-`python3 build.py` regenerates every page from templates in `build.py` + `pages_*.py`. Ministry pages share `MINISTRIES` data (leader, times, description) — edit once, rebuild, all pages update. For non-technical admins long-term, move content into Firebase/Firestore collections mirroring the admin dashboard panes.
+## Before go-live checklist
 
-## Deployment
-
-The whole folder is static — host anywhere:
-
-- **Netlify / Vercel / Cloudflare Pages**: drag-and-drop the folder or connect the repo. Netlify is strong for African traffic + gives free HTTPS (required for payments).
-- **GitHub Pages**: Settings → Pages → deploy from branch.
-
-Recommended: Netlify + custom domain e.g. `goodnewsembassy.org`.
-
-## SEO
-
-Every page ships: unique `<title>` + meta description, Open Graph tags (share image = Apostle photo), semantic headings, fast single-CSS/JS, lazy-loaded map, lightweight fonts (display=swap), responsive mobile-first layout, `robots.txt` + `sitemap.xml` (update domain after purchase), favicon from the JCIA seal.
+- Social URLs + follower counts → Admin ▸ Edit Site ▸ Socials
+- Giving details (EcoCash, Bank, Paynow, Mukuru, PayPal) → Admin ▸ Edit Site ▸ Giving
+- Gemini API key → Admin ▸ JCIA Assistant
+- Real photo of President Audrey Brilliant (an emblem is shown meanwhile)
+- Bootstrap Super Admin password, then set strong passwords for all admin accounts

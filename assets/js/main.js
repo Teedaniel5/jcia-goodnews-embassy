@@ -1,9 +1,9 @@
 /* JCIA — The Good News Embassy | Global script */
 window.JCIA = {
   // *** Replace placeholders with real details before go-live (see README) ***
-  whatsapp: "263780000000",
-  whatsappDisplay: "+263 78 000 0000",
-  email: "info@goodnewsembassy.org",
+  whatsapp: "263774827123",
+  whatsappDisplay: "+263 77 482 7123",
+  email: "teedanielbrilliant@gmail.com",
   location: "Bulawayo, Zimbabwe",
   socials: {
     facebook: "https://facebook.com/jciagoodnewsembassy",
@@ -61,6 +61,20 @@ window.JCIA = {
     }
   });
 
+  /* Testimonies / media slider */
+  $$(".slider").forEach(s => {
+    const slides = s.querySelector(".slides"); if (!slides) return;
+    const nav = s.querySelector(".slider-nav"); const n = slides.children.length;
+    let i = 0, iv;
+    if (nav) for (let k = 0; k < n; k++) { const b = document.createElement("button"); b.setAttribute("aria-label", "Slide " + (k + 1)); b.addEventListener("click", () => go(k)); nav.appendChild(b); }
+    function go(k) { i = k; slides.style.transform = `translateX(-${k * 100}%)`; if (nav) $$("button", nav).forEach((b, bi) => b.classList.toggle("on", bi === k)); }
+    function auto() { clearInterval(iv); iv = setInterval(() => go((i + 1) % n), 6000); }
+    go(0); auto();
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) clearInterval(iv);
+    s.addEventListener("mouseenter", () => clearInterval(iv));
+    s.addEventListener("mouseleave", auto);
+  });
+
   /* Newsletter */
   $$(".newsletter").forEach(f => f.addEventListener("submit", e => {
     e.preventDefault();
@@ -76,6 +90,24 @@ window.JCIA = {
   window.JCIA_WA = function (text) {
     window.open(`https://wa.me/${JCIA.whatsapp}?text=${encodeURIComponent(text)}`, "_blank");
   };
+
+  /* Admin-set overrides: jcia-db.js loads right after main.js, so re-apply on DOM ready */
+  document.addEventListener("DOMContentLoaded", function () {
+    if (!window.JCIA_DB) return;
+    try {
+      const c = JCIA_DB.content();
+      const so = c.socials || {}, st = c.site || {};
+      if (st.whatsapp) {
+        JCIA.whatsapp = String(st.whatsapp).replace(/\D/g, "");
+        const wf = $(".wa-float"); if (wf) wf.href = `https://wa.me/${JCIA.whatsapp}?text=${encodeURIComponent("Hi JCIA Good News Embassy! I'd like to connect.")}`;
+      }
+      if (st.contactEmail) JCIA.email = st.contactEmail;
+      Object.keys(so).forEach(k => {
+        if (!so[k] || typeof so[k] !== "string" || !so[k].startsWith("http")) return;
+        $$(`[data-social="${k}"]`).forEach(el => { el.href = so[k]; });
+      });
+    } catch (e) { /* storage unavailable — defaults stand */ }
+  });
 
   /* Generic form handler: [data-wa-form] composes a WhatsApp message from fields */
   $$("[data-wa-form]").forEach(f => f.addEventListener("submit", e => {

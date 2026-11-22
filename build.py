@@ -44,9 +44,17 @@ def header(title, desc):
       <span class="brand-txt"><span class="brand-name">JCIA</span><br><span class="brand-tag">The Good News Embassy</span></span>
     </a>
     <nav class="nav" aria-label="Main">{nav_html}</nav>
-    <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    <div class="head-tools">
+      <a class="user-chip" href="dashboard.html" id="userChip" style="text-decoration:none"><span>👤</span><span data-chip-name>Login</span></a>
+      <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="search-box" id="searchBox">
+    <input id="searchInput" placeholder="🔍 Search sermons, products, events, devotional…" aria-label="Search">
+    <div class="search-results" id="searchResults"></div>
   </div>
 </header>
+<div id="google_translate_element" style="position:absolute;right:.6rem;top:3.9rem;z-index:290;background:var(--black);border:1px solid var(--line);border-radius:0 0 10px 10px;overflow:hidden"></div>
 <div class="follow-bar">
   <div class="container fb-inner">
     <span>Follow the Embassy:</span>
@@ -85,6 +93,9 @@ def footer():
       <div>
         <h4>Explore</h4>
         <div class="footer-links">
+          <a href="dashboard.html">Member Dashboard</a>
+          <a href="partners.html">Partners Lounge (Gold)</a>
+          <a href="social.html">Social Hub</a>
           <a href="about.html">About the Ministry</a>
           <a href="ministries.html">Ministries</a>
           <a href="movement.html">JCIA Movement</a>
@@ -119,8 +130,74 @@ def footer():
   </div>
 </footer>
 <script src="assets/js/main.js"></script>
+<script src="assets/js/jcia-db.js"></script>
 <script src="assets/js/store.js"></script>
-<script>JCIAStore && JCIAStore.paintCartBar();</script>
+<script src="assets/js/jcia-assistant.js"></script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateInit" defer></script>
+""" + """<script>function googleTranslateInit(){try{new google.translate.TranslateElement({pageLanguage:'en',autoDisplay:false},'google_translate_element');}catch(e){}}
+JCIAStore && JCIAStore.paintCartBar();
+(function(){/* login chip in header */
+  var m = JCIA_DB.session();
+  var chip = document.getElementById('userChip');
+  if(chip && m){chip.querySelector('[data-chip-name]').textContent = m.name.split(' ')[0] + ' · ' + m.id;
+    var ic = chip.querySelector('span'); if(m.photo){var im=document.createElement('img');im.src=m.photo;im.alt='';ic.replaceWith(im);} }
+  else if(chip){chip.querySelector('[data-chip-name]').textContent = 'Login / Join';}
+})();
+
+(function(){/* search overlay: products, events, posts, holdings */
+  var sb = document.getElementById('searchBox'), si = document.getElementById('searchInput'), sr = document.getElementById('searchResults');
+  if(!sb) return;
+  var toggle = document.createElement('button'); toggle.className='tool-btn'; toggle.innerHTML='🔍'; toggle.setAttribute('aria-label','Search');
+  toggle.addEventListener('click', function(){ sb.classList.toggle('open'); if(sb.classList.contains('open')) si.focus(); });
+  $tools = document.querySelector('.head-tools'); $tools.prepend(toggle);
+  var idx = [];
+  JJ = JCIA_DB.content();
+  JJ.products.forEach(function(p){ if(window.JCIA_DB.canView(p.visibility||'everyone', JCIA_DB.session())) idx.push({t:p.title,d:(p.cat||'product')+' · '+(p.price?'$'+p.price:'FREE'),h:'academy.html'}); });
+  (JJ.events||[]).forEach(function(e){ idx.push({t:e.title||e.id, d:(e.type||'event')+' · '+(e.date||''), h:'events.html'}); });
+  (JJ.posts||[]).forEach(function(p){ idx.push({t:p.title||p.id, d:'post · '+(p.date||''), h:'blog.html'}); });
+  [['JCIA Discipleship 101','course · $29','academy.html'],['Spiritual Intelligence Activation','eBook + audio · $19','academy.html'],['7 Days of Good News','free PDF devotional','academy.html'],['Sunday Main Service','service · weekly','live.html'],['Prophetic Service','service · weekly','live.html'],['JCIA Crusade','crusade','events.html']].forEach(function(f){ idx.push({t:f[0],d:f[1],h:f[2]}); });
+  si.addEventListener('input', function(){
+    var q = si.value.toLowerCase(); if(q.length<2){sr.innerHTML='';return;}
+    sr.innerHTML = idx.filter(function(x){return (x.t+' '+x.d).toLowerCase().includes(q);}).slice(0,8)
+      .map(function(x){return '<a href="'+x.h+'"><b>'+x.t+'</b> <span class="muted">'+x.d+'</span></a>';}).join('') || '<a>Nothing found — ask the JCIA Assistant 💬</a>';
+  });
+})();
+/* Edit This Page button (admins only) */
+(function(){
+  var a = JCIA_DB.adminSession();
+  if(a && !document.getElementById('editPageBtn') && window.location.pathname.split('/').pop() !== 'admin.html'){
+    var b = document.createElement('a'); b.id='editPageBtn'; b.href='admin.html#site';
+    b.className='btn btn-gold btn-sm'; b.textContent='✏️ Edit This Page';
+    b.style.cssText='position:fixed;bottom:86px;left:16px;z-index:305;box-shadow:0 8px 22px rgba(0,0,0,.35)';
+    document.body.appendChild(b);
+  }
+})();
+/* Class upgrade congratulations popup */
+(function(){
+  try{
+    var m = JCIA_DB.session(); if(!m || !m.id) return;
+    var k = 'jcia_last_class_' + m.id;
+    var prev = localStorage.getItem(k);
+    var now = (m.memberClass||'general') + '|' + (m.level||'');
+    if(prev && prev !== now){
+      var ov = document.createElement('div'); ov.className='modal';
+      var cls = JCIA_DB.CLASSES[m.memberClass] ? JCIA_DB.CLASSES[m.memberClass].name : 'General Congregation';
+      var isPtr = m.memberClass === 'partner' || m.memberClass === 'son';
+      ov.innerHTML = '<div class="popup-announce modal-card" style="text-align:center;padding:2rem;position:relative;max-width:420px">'
+        + '<button class="modal-x" aria-label="Close" style="position:absolute;right:10px;top:8px;border:none;background:none;font-size:1.4rem;cursor:pointer">✕</button>'
+        + '<div style="font-size:3rem">🎉</div><h2>Congratulations!</h2>'
+        + '<p>New class unlocked: <b>'+cls+' · '+(m.level||'Member')+'</b>.</p>'
+        + '<p class="small muted">Exclusive content has been unlocked in your dashboard'+(isPtr?' and the Partners Lounge':'')+'.</p>'
+        + '<div style="display:flex;gap:.6rem;justify-content:center;margin-top:1rem;flex-wrap:wrap"><a class="btn btn-gold" href="dashboard.html">Open My Dashboard</a>'+(isPtr?'<a class="btn btn-outline" href="partners.html">Partners Lounge</a>':'')+'</div></div>';
+      ov.style.cssText = 'position:fixed;inset:0;background:rgba(4,8,24,.72);z-index:400;display:flex;align-items:center;justify-content:center;padding:1rem';
+      ov.querySelector('.modal-x').onclick = function(){ ov.remove(); };
+      ov.addEventListener('click', function(e){ if(e.target === ov) ov.remove(); });
+      document.body.appendChild(ov);
+    }
+    localStorage.setItem(k, now);
+  }catch(e){}
+})();
+</script>
 </body>
 </html>
 """
@@ -232,8 +309,8 @@ def build_index():
 <section class="hero"><div class="container hero-grid">
   <div>
     <span class="hero-badge">✦ A Prophetic Ministry — Bulawayo to the Nations</span>
-    <h1>WELCOME TO THE <span class="gold">GOOD NEWS EMBASSY</span></h1>
-    <p class="hero-sub">Jesus Christ Intelligence Agency (JCIA) — redeemed souls, raised as Kingdom Stars of the light in Christ Jesus: repositioned to shine and for dominion worldwide.</p>
+    <h1 data-bind="site.heroTitle" data-html>WELCOME TO THE <span class="gold">GOOD NEWS EMBASSY</span></h1>
+    <p class="hero-sub" data-bind="site.heroSub">Jesus Christ Intelligence Agency (JCIA) — redeemed souls, raised as Kingdom Stars of the light in Christ Jesus: repositioned to shine and for dominion worldwide.</p>
     <div class="hero-actions">
       <a class="btn btn-gold" href="live.html">🔴 WATCH LIVE NOW</a>
       <a class="btn btn-outline" href="movement.html#soulwinner">JOIN THE JCIA MOVEMENT</a>
@@ -265,7 +342,7 @@ def build_index():
 </div></section>
 
 <section class="dark section"><div class="container grid g2" style="align-items:center">
-  <div class="media-frame"><span class="flourish"></span><img class="avatar" style="aspect-ratio:4/5" src="assets/img/apostle-red-suit.jpg" alt="Apostle Tee Daniel Brilliant"></div>
+  <div class="media-frame"><span class="flourish"></span><img class="avatar gold-frame pos-top" style="aspect-ratio:4/5" src="assets/img/apostle-red-suit.jpg" alt="Apostle Tee Daniel Brilliant"></div>
   <div>
     <span class="eyebrow eyebrow-light">Meet the Apostle</span>
     <h2 class="section-title">Apostle Tee Daniel Brilliant — A Voice of This Generation</h2>
@@ -338,10 +415,14 @@ def build_index():
   <span class="eyebrow">Testimonies</span>
   <h2 class="section-title">What God Is Doing</h2>
   <div class="gold-line"></div>
-  <div class="grid g3 mt2">
-    <div class="card"><div class="card-body"><p>✨ “Terminal cancer dissolved after the crusade prayer line — doctors confirmed DRY.”</p><span class="small" style="color:var(--navy);font-weight:700">— R.M., Bulawayo</span></div></div>
-    <div class="card"><div class="card-body"><p>✨ “Watched online from South Africa and received my healing the same night by faith.”</p><span class="small" style="color:var(--navy);font-weight:700">— S.K., Johannesburg</span></div></div>
-    <div class="card"><div class="card-body"><p>✨ “After 6 years waiting, my visa came through a week after joining the JCIA Movement.”</p><span class="small" style="color:var(--navy);font-weight:700">— B.N., Harare</span></div></div>
+  <div class="slider mt2" id="homeTesti" style="max-width:720px;margin-inline:auto">
+    <div class="slides">
+      <div class="slide"><div class="card"><div class="card-body"><p>✨ “Terminal cancer dissolved after the crusade prayer line — doctors confirmed DRY.”</p><span class="small" style="color:var(--navy);font-weight:700">— R.M., Bulawayo</span></div></div></div>
+      <div class="slide"><div class="card"><div class="card-body"><p>✨ “Watched online from South Africa and received my healing the same night by faith.”</p><span class="small" style="color:var(--navy);font-weight:700">— S.K., Johannesburg</span></div></div></div>
+      <div class="slide"><div class="card"><div class="card-body"><p>✨ “After 6 years waiting, my visa came through a week after joining the JCIA Movement.”</p><span class="small" style="color:var(--navy);font-weight:700">— B.N., Harare</span></div></div></div>
+      <div class="slide"><div class="card"><div class="card-body"><p>✨ “My son’s results turned around after the Kids Superstar Club prayed with us.”</p><span class="small" style="color:var(--navy);font-weight:700">— P.M., Bulawayo</span></div></div></div>
+    </div>
+    <div class="slider-nav" id="homeTestiNav"></div>
   </div>
   <a class="btn btn-dark mt2" href="testimonies.html">Read &amp; Share Testimonies →</a>
 </div></section>
@@ -368,11 +449,11 @@ def build_about():
       <div class="card mt1" style="padding:1.2rem"><b style="font-family:var(--font-head)">Our Mission</b><p class="mt1">Engaging in evangelical Kingdom advancement endeavours, thereby reviving and repositioning people for total subjection to the Higher power that is God by: preaching the gospel of Jesus Christ, healing, deliverance, prophetic, miracles &amp; wonders — Mark 16:15-18.</p></div>
     </div>
   </div>
-  <div class="media-frame"><span class="flourish"></span><img class="avatar" style="aspect-ratio:4/5" src="assets/img/apostle-mic-white.jpg" alt="Apostle Tee Daniel Brilliant ministering"></div>
+  <div class="media-frame"><span class="flourish"></span><img class="avatar gold-frame pos-top" style="aspect-ratio:4/5" src="assets/img/apostle-mic-white.jpg" alt="Apostle Tee Daniel Brilliant ministering"></div>
 </div></section>
 
 <section class="dark section" id="apostle"><div class="container grid g2" style="align-items:start">
-  <div class="card"><img class="card-img" style="height:340px;object-position:top" src="assets/img/apostle-pulpit.jpg" alt="Apostle Tee Daniel Brilliant on the pulpit">
+  <div class="card gold-frame" style="padding:0"><img class="card-img" style="height:340px;object-position:top" src="assets/img/apostle-pulpit.jpg" alt="Apostle Tee Daniel Brilliant on the pulpit">
     <div class="card-body"><h3>Apostle Tee Daniel Brilliant</h3>
     <p class="small">Senior Pastor · Founder · Apostolic Overseer</p></div></div>
   <div>
@@ -393,7 +474,7 @@ def build_about():
 
 <section class="section"><div class="container grid g2">
   <div class="card"><div class="card-body">
-    <img class="avatar" style="width:220px" src="assets/img/apostle-hero.jpg" alt="President Audrey Brilliant">
+    <img class="avatar gold-frame" style="width:220px;background:#fff;padding:1rem" src="assets/img/good-news-embassy.png" alt="The Good News Embassy — President Audrey Brilliant's office emblem">
     <h3 class="mt1">President Audrey Brilliant</h3>
     <p class="small muted">President · Mother of the Embassy · Leader of Women's Ministry</p>
     <p class="mt1">The wife of Apostle Tee Daniel Brilliant and co-labourer in the vision. As Mother of the Embassy she covers the family in prayer and grace, and as Leader of the Women's Ministry she raises daughters, wives and mothers into their full royal identity — mothers of stars, raising stars.</p>
@@ -459,7 +540,7 @@ PAGES = {
 }
 
 def build_all():
-    import pages_extra, pages_live_media, pages_shop, pages_more, pages_admin
+    import pages_extra, pages_live_media, pages_shop, pages_more, pages_admin, pages_phase2
     extra = dict(PAGES)
     extra["ministries.html"] = ("Ministries", "The ministries of JCIA Good News Embassy: Kids, Youth, Men, Women, and the JCIA Movement evangelistic ministry.", pages_extra.build_ministries)
     for m in MINISTRIES:
@@ -475,12 +556,13 @@ def build_all():
     extra["blog.html"] = ("Daily Devotional", "Daily devotionals, prophetic insights and teachings from the Good News Embassy blog.", pages_more.build_blog)
     extra["testimonies.html"] = ("Testimonies", "Praise reports and testimonies from the JCIA Good News Embassy family.", pages_more.build_testimonies)
     extra["admin.html"] = ("Admin", "JCIA administration dashboard.", pages_admin.build_admin)
+    extra["dashboard.html"] = ("Member Dashboard", "Your JCIA member dashboard: profile, library, giving history, membership class, course progress and notifications.", pages_phase2.build_dashboard)
+    extra["partners.html"] = ("Partners Lounge", "Gold access — exclusive teachings, prophetic messages and Zoom mentoring for Partners and Sons of the Prophet.", pages_phase2.build_partners)
+    extra["social.html"] = ("Social Hub", "Follow the Good News Embassy on Facebook, YouTube, Instagram and TikTok — latest posts and live updates.", pages_phase2.build_social)
 
     for fname, (ptitle, desc, fn) in extra.items():
         html = header(ptitle, desc) + fn()
         body = footer()
-        if fname == "admin.html":
-            body = body.replace('src="assets/js/store.js"', 'src="assets/js/store.js"\n<script src="assets/js/admin.js"></script>')
         html += body
         with open(os.path.join(ROOT, fname), "w", encoding="utf-8") as fh:
             fh.write(html)

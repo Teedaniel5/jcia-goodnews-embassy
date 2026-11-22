@@ -41,12 +41,19 @@ def build_give():
         <select name="Method" required>
           <option value="">Choose…</option>
           <option>PayPal</option><option>Card (Stripe)</option><option>Paynow</option>
-          <option>EcoCash</option><option>Mukuru</option><option>Direct Deposit / WhatsApp</option>
+          <option>EcoCash</option><option>Mukuru</option><option>Bank Transfer</option>
+          <option>Sent by Hand / WhatsApp</option>
         </select>
       </div>
+      <div id="giveDetails" class="lock-note hidden"></div>
       <button class="btn btn-gold btn-block" type="submit">Give Now 🙏</button>
       <div id="giveOk" class="success-msg hidden"></div>
-      <p class="form-note">🔒 Secure checkout. Gateway keys are plugged in at deployment (see README). You will receive a giving receipt.</p>
+      <div class="hidden" id="proofBox">
+        <button class="btn btn-wa btn-block mt1" id="iHaveSent" type="button">✅ I HAVE SENT — Submit Proof &amp; Get Receipt</button>
+        <div class="field mt1"><label>Proof of payment (screenshot)</label><input type="file" id="proofFile" accept="image/*"></div>
+        <div class="progress-thin hidden" id="proofProg"><span></span></div>
+      </div>
+      <p class="form-note">🔒 Every gift receives a <b>Giving Reference Code</b>; receipts go out via Email + WhatsApp; gifts land in your Dashboard giving history; admin approves proofs and issues receipts.</p>
     </form>
   </div>
 </div></section>
@@ -57,24 +64,68 @@ def build_give():
 </div></section>
 <script>
 (function(){
+  var D=window.JCIA_DB;
   var freq='One-time';
   document.querySelectorAll('#giveTabs .tab').forEach(function(t){t.addEventListener('click',function(){
     document.querySelectorAll('#giveTabs .tab').forEach(function(x){x.classList.remove('on');});
     t.classList.add('on');freq=t.dataset.type;
-    document.getElementById('freqLabel').textContent = freq==='Monthly'?'monthly subscription':'one-time gift';
+    document.getElementById('freqLabel').textContent = freq==='Monthly'?'monthly partnership':'one-time gift';
   });});
   document.querySelectorAll('.quick').forEach(function(q){q.addEventListener('click',function(){
     var i=document.querySelector('#giveForm [name=Amount]');i.value=q.dataset.amt;i.focus();});});
+
+  document.querySelector('#giveForm [name=Method]').addEventListener('change',function(){
+    var g=D.content().giving,box=document.getElementById('giveDetails');
+    var map={'EcoCash':'📱 <b>EcoCash:</b> '+(g.ecocash||'(Admin to update)'),
+      'Bank Transfer':'🏦 <b>Bank:</b> '+(g.bank||'(Admin to update)')+'<br><b>Account:</b> '+(g.bankAccount||'(Admin to update)')+' — use your Giving Reference Code',
+      'Paynow':'⚡ <b>Paynow:</b> '+(g.paynow||'(Admin to update)'),
+      'Mukuru':'🌍 <b>Mukuru:</b> '+(g.mukuru||'(Admin to update)'),
+      'PayPal':'💳 <b>PayPal:</b> '+(g.paypal||'(Admin to update)')};
+    if(map[this.value]){box.classList.remove('hidden');box.innerHTML=map[this.value];}
+    else{box.classList.add('hidden');}
+  });
+
+  var currentRef=null;
   document.getElementById('giveForm').addEventListener('submit',function(e){
     e.preventDefault();
-    var fd=new FormData(e.target);var o=Object.fromEntries(fd.entries());o.Frequency=freq;o.at=new Date().toISOString();
+    var fd=new FormData(e.target);var o=Object.fromEntries(fd.entries());
+    o.Frequency=freq;o.at=new Date().toISOString();
+    o.ref='JCIA-GIVE-'+String(Math.floor(1000+Math.random()*9000))+'-'+Date.now().toString(36).toUpperCase();
+    currentRef=o.ref;
+    var m=D.session(); if(m){o.member=m.id;}
     var g=JSON.parse(localStorage.getItem('jcia_givings')||'[]');g.push(o);localStorage.setItem('jcia_givings',JSON.stringify(g));
+    if(m){D.updateMember(m.id,{givings:(m.givings||[]).concat([o])});}
+    D.notify('New Giving: '+(m?m.name:(o.Name||'Guest'))+' sowed $'+o.Amount+' ('+o.Purpose+')','Ref '+o.ref+' via '+o.Method,'admin');
     var ok=document.getElementById('giveOk');ok.classList.remove('hidden');
-    ok.innerHTML='🙏 Thank you, '+(o.Name||'partner')+'! You chose <b>'+(o.Method)+'</b> — '+freq+' $'+o.Amount+' for '+(o.Purpose)+'. Complete the transaction on the '+o.Method+' gateway screen (or WhatsApp us on +263 77 482 7123 for bank details).';
-    window.open('https://wa.me/263774827123?text='+encodeURIComponent('GIVING\\nName: '+o.Name+'\\nType: '+o.Purpose+' ('+freq+')\\nAmount: $'+o.Amount+'\\nMethod: '+o.Method),'_blank');
+    ok.innerHTML='🙏 Thank you, '+(o.Name||'partner')+'! Your Giving Reference Code is <b class="ref-code">'+o.ref+'</b><br>Send $'+o.Amount+' via <b>'+o.Method+'</b> with the details shown, then press <b>I HAVE SENT</b> below. 📧💬 Confirmed receipt follows by Email + WhatsApp.';
+    if(m){ok.innerHTML+=' Your gift is saved in your <a href="dashboard.html?tab=giving" style="font-weight:700;color:#13713a">Giving History</a>.';}
+    document.getElementById('proofBox').classList.remove('hidden');
+    ok.scrollIntoView({behavior:'smooth',block:'center'});
+    window.open('https://wa.me/263774827123?text='+encodeURIComponent('GIVING\nRef: '+o.ref+'\nName: '+(o.Name||'')+'\nType: '+o.Purpose+' ('+freq+')\nAmount: $'+o.Amount+'\nMethod: '+o.Method),'_blank');
+  });
+
+  document.getElementById('iHaveSent').addEventListener('click',function(){
+    var f=document.getElementById('proofFile').files[0];
+    var msg=document.getElementById('giveOk');
+    if(!f){msg.innerHTML+=' 📎 <b style="color:#b91c1c">Attach your proof screenshot first.</b>';return;}
+    var pv=document.querySelector('#proofProg');pv.classList.remove('hidden');
+    var pct=0;var iv=setInterval(function(){pct+=Math.random()*30;pv.firstElementChild.style.width=Math.min(100,pct)+'%';},150);
+    D.compressImage(f,900,function(dataUrl){
+      clearInterval(iv);pv.firstElementChild.style.width='100%';
+      var proofs=JSON.parse(localStorage.getItem('jcia_proofs')||'[]');
+      proofs.push({ref:currentRef,proof:dataUrl,at:new Date().toISOString(),status:'pending'});
+      localStorage.setItem('jcia_proofs',JSON.stringify(proofs));
+      var g=JSON.parse(localStorage.getItem('jcia_givings')||'[]');
+      var i=g.findIndex(function(x){return x.ref===currentRef;});
+      if(i>-1){g[i].status='pending-approval';g[i].proof=dataUrl.slice(0,200000);}
+      localStorage.setItem('jcia_givings',JSON.stringify(g));
+      msg.innerHTML='🎉 <b>Proof received!</b> Ref <b class="ref-code">'+currentRef+'</b> — admin is confirming; your receipt follows by Email + WhatsApp.';
+      document.getElementById('iHaveSent').outerHTML='<span class="badge badge-ok">Proof submitted ✓</span>';
+      window.open('https://wa.me/263774827123?text='+encodeURIComponent('I HAVE SENT — giving ref '+currentRef+' — proof screenshot uploaded. Please approve and issue receipt.'),'_blank');
+    });
   });
 })();
-</script>"""
+</script></script>"""
     return b
 
 EVENTS = [

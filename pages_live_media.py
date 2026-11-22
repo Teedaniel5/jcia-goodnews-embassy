@@ -84,11 +84,15 @@ def build_live():
 </div></section>
 <script>
 (function(){
-  /* social links */
-  if(window.JCIA){var map=JCIA.socials;document.querySelectorAll('[data-hub]').forEach(function(a){a.href=map[a.dataset.hub];a.target='_blank';});}
+  /* social links — admin-set URLs win (JCIA_DB.content().socials), fallback to JCIA defaults */
+  var soc = (window.JCIA_DB && JCIA_DB.content().socials) || {}; var map = {};
+  ['facebook','youtube','instagram','tiktok'].forEach(function(k){ map[k] = soc[k] || (window.JCIA && JCIA.socials[k]) || '#'; });
+  document.querySelectorAll('[data-hub]').forEach(function(a){ a.href=map[a.dataset.hub]||'#'; a.target='_blank'; });
 
-  /* LIVE state from admin dashboard (localStorage) */
-  var live = JSON.parse(localStorage.getItem('jcia_live') || 'null');
+  /* LIVE state from Admin ▸ Go Live — reads JCIA_DB.content().live (old jcia_live key honoured) */
+  var live = null;
+  try { live = (window.JCIA_DB && JCIA_DB.content().live) || null; } catch(e) {}
+  if(!live){ live = JSON.parse(localStorage.getItem('jcia_live') || 'null'); }
   var badge=document.getElementById('liveBadge'),status=document.getElementById('liveStatus'),
       off=document.getElementById('liveOff'),player=document.getElementById('livePlayer'),
       links=document.getElementById('platformLinks');
@@ -100,8 +104,7 @@ def build_live():
     else if(live.facebookUrl){player.classList.remove('hidden');
       player.innerHTML='<iframe src="https://www.facebook.com/plugins/video.php?href='+encodeURIComponent(live.facebookUrl)+'" allowfullscreen title="JCIA Live Service"></iframe>';}
     var chips = (live.platforms||[]).map(function(p){
-      var url = p==='youtube'?'https://youtube.com/@jciagoodnewsembassy': p==='facebook'?'https://facebook.com/jciagoodnewsembassy': p==='instagram'?'https://instagram.com/jcia_goodnewsembassy':'https://tiktok.com/@jcia.goodnewsembassy';
-      return '<a class="pay-chip" href="'+url+'" target="_blank" rel="noopener" style="text-transform:capitalize">▶ Watch on '+p+'</span></a>';}).join('');
+      return '<a class="pay-chip" href="'+(map[p]||'#')+'" target="_blank" rel="noopener" style="text-transform:capitalize">▶ Watch on '+p+'</a>';}).join('');
     links.innerHTML = chips || '<span class="small" style="color:#aab7d4">Watch links will appear here.</span>';
   } else {
     /* countdown to next service (Sun 9AM / Wed 6PM CAT ~ UTC+2) */
@@ -132,7 +135,7 @@ def build_live():
     var fd=new FormData(pf);
     var list=JSON.parse(localStorage.getItem('jcia_prayers')||'[]');
     var shared=document.getElementById('prayerShared').checked;
-    list.push({name:fd.get('name'),request:fd.get('request'),shared:shared,at:new Date().toISOString(),status:'new'});
+    list.push({name:fd.get('name'),request:fd.get('request'),shared:shared,private:!shared,whatsapp:'',member:(function(){try{return JCIA_DB.session()?JCIA_DB.session().id:''; }catch(e){return '';}})(),at:new Date().toISOString(),status:'new'});
     localStorage.setItem('jcia_prayers',JSON.stringify(list));
     pf.reset();
     document.getElementById('prayerOk').classList.remove('hidden');

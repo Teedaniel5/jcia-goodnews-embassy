@@ -65,7 +65,8 @@
   /* ---- products (admin can add) ---- */
   function products() {
     const custom = db.get("jcia_products", []);
-    return [...STARTER_PRODUCTS, ...custom];
+    const hosted = (window.JCIA_DB ? JCIA_DB.content().products : []) || [];
+    return [...STARTER_PRODUCTS, ...custom, ...hosted];
   }
   function product(id) { return products().find(p => p.id === id); }
 
@@ -122,25 +123,42 @@
     const owned = libraryPurchases();
 
     function paint(cat) {
-      const list = products().filter(p => cat === "all" || p.cat === cat);
-      grid.innerHTML = list.map(p => `
+      const me = window.JCIA_DB ? JCIA_DB.session() : null;
+      const list = products().filter(p => (cat === "all" || p.cat === cat))
+        .filter(p => window.JCIA_DB ? JCIA_DB.canView(p.visibility || "everyone", me) : true);
+      if (!list.length) { grid.innerHTML = '<p class="muted">Nothing here for your class yet.</p>'; return; }
+      grid.innerHTML = list.map(p => {
+        const vis = p.visibility || "everyone";
+        const locked = window.JCIA_DB ? !JCIA_DB.canView(vis, me) : false;
+        const media = p.cover
+          ? `<div class="prod-media"><img src="${p.cover}" alt="${p.title} cover" loading="lazy"></div>`
+          : `<div class="prod-media ${p.cat}"><span class="ph">${p.icon || "🎯"}</span></div>`;
+        return `
         <article class="card">
-          <div class="prod-media ${p.cat}"><span class="ph">${p.icon}</span></div>
+          ${media}
           <div class="card-body">
-            <span class="pill">${p.cat === "courses" ? "Video course" : p.type.replace("-", " + ")}</span>
+            <div class="flex"><span class="pill">${p.cat === "courses" ? "Video course" : String(p.type || "product").replace("-", " + ")}</span>
+            ${vis !== "everyone" ? `<span class="pill" style="background:#3b1d6e;color:#fff">${JCIA_DB.visLabel(vis)}</span>` : ""}</div>
             <h3>${p.title}</h3>
-            <p>${p.desc.slice(0, 110)}…</p>
+            <p>${(p.desc || "").slice(0, 110)}…</p>
             <div class="flex spread mt1">
               ${p.price === 0 ? '<span class="tag-free">FREE</span>' : `<span class="price">$${p.price}</span>`}
             </div>
             <div class="flex mt1">
-              ${owned.includes(p.id)
-          ? `<a class="btn btn-dark btn-sm" style="flex:1" href="library.html#${p.id}">Open in Library</a>`
-          : `<button class="btn btn-gold btn-sm" style="flex:1" data-add="${p.id}">Add to Cart</button>
+              ${locked
+          ? `<button class="btn btn-dark btn-sm" style="flex:1" disabled>🔒 ${JCIA_DB.visLabel(vis)} — Upgrade to unlock</button>`
+          : owned.includes(p.id)
+            ? `<a class="btn btn-dark btn-sm" style="flex:1" href="library.html#${p.id}">Open in Library</a>`
+            : `<button class="btn btn-gold btn-sm" style="flex:1" data-add="${p.id}">Add to Cart</button>
                  <a class="btn btn-outline btn-sm" href="checkout.html?buy=${p.id}">Buy</a>`}
             </div>
+            <div class="share-row mt1">
+              <a class="share-btn sh-wa" title="Share on WhatsApp" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent("See this from JCIA Academy: " + p.title + " — " + (p.price ? "$" + p.price : "Free") + " " + location.origin + "/academy.html")}">✆</a>
+              <a class="share-btn sh-fb" title="Share on Facebook" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.origin + "/academy.html")}">f</a>
+            </div>
           </div>
-        </article>`).join("");
+        </article>`;
+      }).join("");
       $$("[data-add]", grid).forEach(b => b.addEventListener("click", () => addToCart(b.dataset.add)));
     }
     $$(".tab", el).forEach(t => t.addEventListener("click", () => {
@@ -153,8 +171,10 @@
 
   /* ---- course / library player ---- */
   function renderLibrary(el) {
-    const owned = libraryPurchases();
-    const items = libraryPurchases().map(id => product(id)).filter(Boolean);
+    const me = window.JCIA_DB ? JCIA_DB.session() : null;
+    const owned = Array.from(new Set([].concat(libraryPurchases(), (me && me.purchases) || [])));
+    const items = owned.map(id => product(id)).filter(Boolean)
+      .filter(p => window.JCIA_DB ? JCIA_DB.canView(p.visibility || "everyone", me) : true);
     const m = member();
     el.innerHTML = `
       <div class="card" style="padding:1.4rem;margin-bottom:1.5rem">
@@ -184,7 +204,7 @@
             <div class="flex spread"><h3>${p.icon} ${p.title}</h3><span class="price">${p.price ? "$" + p.price : "Free"}</span></div>
             <p>${p.desc}</p>
             <div class="flex mt1">
-              <a class="btn btn-dark btn-sm" href="${p.file || "#"}" ${p.file ? 'download' : ""}>⬇ Download</a>
+              <a class="btn btn-dark btn-sm" href="${p.visibility && p.visibility.startsWith("partner") ? "partners.html" : (p.file || "#")}" ${p.file ? 'download' : ""} data-dl="${p.id}">⬇ Download${me ? ` <span class="muted small">· ${(p.downloads || 0)}</span>` : ""}</a>
               ${p.type === "ebook-audio" ? '<a class="btn btn-outline btn-sm" href="#" onclick="return false">🎧 Audio (stream)</a>' : ""}
             </div>
           </div></article>`;
@@ -228,6 +248,12 @@
       const total = $$("[data-done], .badge-ok", player).length;
       const pct = Math.min(100, Math.round(total / (mods.length) * 100));
       db.set(pidKey, Math.max(db.get(pidKey, 0), pct));
+      if (window.JCIA_DB && JCIA_DB.session()) {
+        const m = JCIA_DB.session();
+        const prog = Object.assign({}, m.progress || {});
+        prog[pid] = Math.max(prog[pid] || 0, pct);
+        JCIA_DB.updateMember(m.id, { progress: prog });
+      }
       toast("Progress saved · " + pct + "%");
     }));
     $("[data-quiz]", player).addEventListener("submit", e => {
@@ -237,6 +263,22 @@
       toast("Quiz passed — certificate unlocked!");
     });
   }
+
+  /* protected download counting + partner gate */
+  document.addEventListener("click", function (e) {
+    const a = e.target.closest("[data-dl]");
+    if (!a) return;
+    const me = window.JCIA_DB ? JCIA_DB.session() : null;
+    if (!me) { return; }
+    const id = a.dataset.dl;
+    const all = db.get("jcia_products", []);
+    const hostedP = (JCIA_DB.content().products || []).find(p => p.id === id);
+    if (hostedP && hostedP.visibility && hostedP.visibility !== "everyone" && hostedP.visibility !== "general") {
+      if (!JCIA_DB.canView(hostedP.visibility, me)) { e.preventDefault(); location.href = "partners.html"; return; }
+    }
+    const n = parseInt(localStorage.getItem("jcia_dl_" + id) || "0", 10) + 1;
+    localStorage.setItem("jcia_dl_" + id, n);
+  });
 
   /* Expose */
   window.JCIAStore = { products, product, cart, cartItems, cartTotal, addToCart, saveCart, paintCartBar, renderShop, renderLibrary, grant, libraryPurchases, member, db };

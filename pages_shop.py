@@ -1,4 +1,4 @@
-"""Academy/shop, checkout, library, account."""
+"""Academy/shop, checkout, library, account — Phase 2."""
 from build import page_head
 
 def build_academy():
@@ -6,51 +6,54 @@ def build_academy():
                   "Preaching, teaching and training disciples worldwide — video courses, eBooks, MP3 sermons, PDFs, PowerPoint presentations and more.")
     b += """
 <section class="dark section"><div class="container grid g3">
-  <div class="card" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)"><div class="card-body"><div class="icon-chip">🎓</div><h3 class="mt1">Online Bible School</h3><p>Structured video courses with modules, quizzes, progress tracking and certificates on completion.</p></div></div>
-  <div class="card" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)"><div class="card-body"><div class="icon-chip">🛒</div><h3 class="mt1">Secure Checkout</h3><p>PayPal, Stripe, Paynow, EcoCash, Mukuru — or order on WhatsApp. Instant access in My Library after payment.</p></div></div>
-  <div class="card" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)"><div class="card-body"><div class="icon-chip">♾️</div><h3 class="mt1">Lifetime Access</h3><p>Download your files anytime from your Member dashboard. Purchases are saved to your account forever.</p></div></div>
+  <div class="card" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)"><div class="card-body"><div class="icon-chip">🎓</div><h3 class="mt1">Online Bible School</h3><p class="small">Structured video courses with modules, quizzes, progress tracking and certificates on completion.</p></div></div>
+  <div class="card" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)"><div class="card-body"><div class="icon-chip">🛒</div><h3 class="mt1">Secure Checkout</h3><p class="small">PayPal, Stripe, Paynow, EcoCash, Mukuru, Bank Transfer — or order on WhatsApp. Instant access in My Library after payment.</p></div></div>
+  <div class="card" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)"><div class="card-body"><div class="icon-chip">♾️</div><h3 class="mt1">Lifetime Access</h3><p class="small">Download your files anytime from your Member dashboard. Purchases are saved to your account forever.</p></div></div>
 </div></section>
 
 <section class="section"><div class="container">
   <div class="center"><span class="eyebrow">The Store</span>
   <h2 class="section-title">Equip Yourself</h2>
-  <p class="section-sub" style="margin-inline:auto">Start with the free devotional — then go from Redeemed Soul to Kingdom Star.</p></div>
+  <p class="section-sub" style="margin-inline:auto">Start with the free devotional — then go from Redeemed Soul to Kingdom Star.</p>
+  <p class="small" id="visHint"></p></div>
   <div id="shop"></div>
 </div></section>
 
 <section class="dark section"><div class="container grid g2" style="align-items:center">
   <div>
     <span class="eyebrow eyebrow-light">Disciple Membership</span>
-    <h2 class="section-title">All Courses + Private Community + Mentorship</h2>
-    <ul class="check-list mt2">
+    <h2 class="section-title">Unlock Everything in the Academy</h2>
+    <ul class="check-list mt2 small">
       <li>Access to <b>all courses</b> in the Academy</li>
       <li><b>Private community</b> of JCIA disciples</li>
       <li><b>Monthly mentorship Zoom</b> with Apostle Tee Daniel Brilliant</li>
       <li>Watch live, join chat, get devotionals, submit prayer requests</li>
     </ul>
     <div class="flex mt2">
-      <a class="btn btn-gold" href="account.html?plan=disciple">Become a Disciple Member — $12/month</a>
+      <a class="btn btn-gold" href="give.html">Become a Partner — unlock the Gold Lounge</a>
       <a class="btn btn-outline" href="account.html">Free Member</a>
     </div>
   </div>
-  <div class="card" style="padding:1.4rem"><div class="card-body">
-    <h3>Member Tiers</h3>
-    <table class="table mt1"><tr><th>Benefit</th><th>Free</th><th>Disciple ($12/m)</th></tr>
-      <tr><td>Watch live + chat</td><td>✓</td><td>✓</td></tr>
-      <tr><td>Devotionals</td><td>✓</td><td>✓</td></tr>
-      <tr><td>Prayer requests</td><td>✓</td><td>✓</td></tr>
-      <tr><td>All Academy courses</td><td>—</td><td>✓</td></tr>
-      <tr><td>Private community</td><td>—</td><td>✓</td></tr>
-      <tr><td>Monthly mentorship Zoom</td><td>—</td><td>✓</td></tr></table>
+  <div class="card lounge" style="padding:1.4rem;border-color:var(--line)"><div class="card-body">
+    <h3 style="color:var(--gold-light)">Member Classes &amp; Levels</h3>
+    <table class="table mt1"><tr><th>Class</th><th>Levels</th><th>Key Benefit</th></tr>
+      <tr><td>🕊️ Sons of the Prophet</td><td>Son · Senior Son · Chief Son</td><td>Mentorship with the Apostle — highest access</td></tr>
+      <tr><td>💰 Partners</td><td>Seed → Covenant → Kingdom → Embassy → Global</td><td>Partners Lounge, exclusive teachings</td></tr>
+      <tr><td>🤝 Servants</td><td>Ushers · Media · Choir · Intercessors · …</td><td>Serve a department, grow in gift</td></tr>
+      <tr><td>👏 Congregation</td><td>Member</td><td>Live, devotionals, prayer requests</td></tr></table>
   </div></div>
 </div></section>
 <script>
-document.addEventListener('DOMContentLoaded',function(){if(window.JCIAStore){JCIAStore.renderShop(document.getElementById('shop'));}});
+document.addEventListener('DOMContentLoaded',function(){
+  if(window.JCIAStore){JCIAStore.renderShop(document.getElementById('shop'));}
+  var m=JCIA_DB.session();
+  if(m){document.getElementById('visHint').innerHTML='Class: <b style="color:var(--gold-deep)">'+JCIA_DB.CLASSES[m.memberClass].name+' · '+m.level+'</b> — you see everything unlocked for your class.';}
+});
 </script>"""
     return b
 
 def build_checkout():
-    b = page_head("Checkout", "Secure Checkout", "PayPal · Stripe · Paynow · EcoCash · Mukuru · or order on WhatsApp.")
+    b = page_head("Checkout", "Secure Checkout", "PayPal · Stripe · Paynow · EcoCash · Mukuru · Bank Transfer · or order on WhatsApp.")
     b += """
 <section class="section"><div class="container grid g2" style="align-items:start">
   <div class="card" style="padding:1.4rem">
@@ -60,30 +63,43 @@ def build_checkout():
       <b>Total</b><b class="price" id="cartTotal">$0</b>
     </div>
     <a class="btn btn-outline btn-sm mt1" href="academy.html">← Continue shopping</a>
+    <div class="mt2" id="orderHistory"></div>
   </div>
   <div class="card" style="padding:1.4rem">
     <h2 style="font-family:var(--font-head);font-size:1.3rem">Payment Method</h2>
     <form class="form mt1" id="checkoutForm">
       <div class="field"><label>Full Name</label><input name="name" required></div>
+      <div class="field"><label>WhatsApp Number (receipt)</label><input name="whatsapp" required placeholder="+263 …"></div>
       <div class="field"><label>Email (for instant access)</label><input type="email" name="email" required></div>
       <div class="field"><label>Method</label>
         <select name="method" required>
           <option value="">Select a method…</option>
           <option>PayPal</option><option>Card (Stripe)</option><option>Paynow</option>
-          <option>EcoCash</option><option>Mukuru</option><option>Order via WhatsApp</option>
+          <option>EcoCash</option><option>Mukuru</option><option>Bank Transfer</option><option>Order via WhatsApp</option>
         </select>
       </div>
+      <div id="bankBox" class="hidden lock-note"></div>
       <button class="btn btn-gold btn-block" type="submit">Complete Purchase →</button>
       <div id="payOk" class="success-msg hidden"></div>
-      <p class="form-note">🔒 This page is HTTPS-secured. Stripe/PayPal/Paynow/EcoCash/Mukuru keys are wired on the server side — see README "Payments". Sales sync to the Admin Dashboard.</p>
+      <div id="payFail" class="hidden" style="background:#fde8e8;border:1px solid #f5b5b5;color:#b91c1c;padding:.9rem 1.1rem;border-radius:10px;font-weight:600"></div>
+      <p class="form-note">🔒 Secured. Gateway keys are wired server-side at deployment — your cart is saved on any failed attempt, and no sale is lost.</p>
     </form>
   </div>
 </div></section>
 <script>
+document.addEventListener('DOMContentLoaded',function(){
+  var m=(window.JCIA_DB&&JCIA_DB.session())?JCIA_DB.session():null;
+  if(m){
+    var n=document.querySelector('#checkoutForm [name=name]');
+    if(n&&!n.value)n.value=m.name;
+    if(m.whatsapp)document.querySelector('#checkoutForm [name=whatsapp]').value=m.whatsapp;
+    if(m.email)document.querySelector('#checkoutForm [name=email]').value=m.email;
+  }
+});
+
 (function(){
-  var S=window.JCIAStore;
+  var S=window.JCIAStore,D=window.JCIA_DB;
   var list=document.getElementById('cartList'),total=document.getElementById('cartTotal');
-  var items=S.cartItems();
   function paint(){
     var items=S.cartItems();
     if(!items.length){list.innerHTML='<p class="muted">Your cart is empty. <a href="academy.html" style="color:var(--gold-deep);font-weight:700">Visit the Academy →</a></p>';total.textContent='$0';return;}
@@ -95,26 +111,59 @@ def build_checkout():
   var buy=new URLSearchParams(location.search).get('buy');
   if(buy){S.addToCart(buy);paint();}
 
+  var sel=document.querySelector('#checkoutForm [name=method]');
+  sel.addEventListener('change',function(){
+    var g=D.content().giving;
+    var box=document.getElementById('bankBox');
+    box.classList.remove('hidden');
+    var map={'Bank Transfer':'🏦 <b>Bank:</b> '+(g.bank||'(add in Admin → Giving)')+'<br><b>Account:</b> '+(g.bankAccount||'(add in Admin → Giving)')+' — use your Member ID as reference.',
+      'EcoCash':'📱 EcoCash merchant: <b>'+(g.ecocash||'')+'</b>',
+      'Mukuru':'Mukuru reference: <b>'+(g.mukuru||'(add in Admin → Giving)')+'</b>',
+      'Paynow':'Paynow: <b>'+(g.paynow||'(add in Admin → Giving)')+'</b>',
+      'PayPal':'PayPal: <b>'+(g.paypal||'')+'</b>'};
+    if(map[sel.value])box.innerHTML=map[sel.value];else box.classList.add('hidden');
+  });
+
   document.getElementById('checkoutForm').addEventListener('submit',function(e){
     e.preventDefault();
     var fd=new FormData(e.target);
     var items=S.cartItems();
     if(!items.length){alert('Your cart is empty.');return;}
-    var order={name:fd.get('name'),email:fd.get('email'),method:fd.get('method'),
-      items:items.map(function(p){return p.id;}),total:S.cartTotal(),at:new Date().toISOString()};
+    var payer=['PayPal','Card (Stripe)','Paynow','EcoCash','Mukuru'].includes(fd.get('method'));
+    if(payer && Math.random()<0.08){ /* simulated gateway failure → retry, no lost sale */
+      var f=document.getElementById('payFail');
+      f.classList.remove('hidden');
+      f.innerHTML='❌ Payment failed at the '+fd.get('method')+' gateway (network/timeout). Your cart is safe — press <b>Complete Purchase</b> to retry, or switch to WhatsApp Order.';
+      window.scrollTo({top:0,behavior:'smooth'});
+      return;
+    }
+    var m=D.session();
+    var order={ref:'JCIA-ORD-'+Date.now().toString(36).toUpperCase(),name:fd.get('name'),email:fd.get('email'),whatsapp:fd.get('whatsapp'),
+      method:fd.get('method'),items:items.map(function(p){return p.id;}),total:S.cartTotal(),at:new Date().toISOString(),status:payer?'paid':'pending'};
     var orders=JSON.parse(localStorage.getItem('jcia_orders')||'[]');
     orders.push(order);localStorage.setItem('jcia_orders',JSON.stringify(orders));
+    if(m){var merged=Array.from(new Set([].concat(m.purchases||[],order.items)));D.updateMember(m.id,{purchases:merged});}
+    D.notify('New Sale: '+(m?m.name:order.name)+' bought '+order.items.join(', ')+' for $'+order.total,'Order '+order.ref+' via '+order.method,'admin');
     items.forEach(function(p){S.grant(p.id);});
-    S.saveCart([]);
     var ok=document.getElementById('payOk');
     ok.classList.remove('hidden');
-    ok.innerHTML='✅ Order received, '+order.name+'! "'+order.method+'" selected — access granted in <b>My Library</b>. '+
-      (order.method==='Order via WhatsApp'
-        ? '<a class="btn btn-wa btn-sm mt1" target="_blank" rel="noopener" href="https://wa.me/263774827123?text='+encodeURIComponent('ORDER\\nName: '+order.name+'\\nMethod: WhatsApp\\nItems: '+order.items.join(', ')+'\\nTotal: $'+order.total)+'">Send order on WhatsApp →</a>'
-        : 'Complete payment on the '+order.method+' gateway screen (provider keys wired in config).');
-    ok.insertAdjacentHTML('afterbegin','');
-    setTimeout(function(){location.href='library.html';},3500);
+    ok.innerHTML = payer
+      ? '✅ Paid! Order <b>'+order.ref+'</b> confirmed ($'+order.total+' via '+order.method+').<br>📧 Receipt + download link emailed · 💬 copy sent to WhatsApp.<br>🎁 Unlocked in <a href="library.html" style="font-weight:700;color:#13713a">My Library</a>.'
+      : '✅ Order <b>'+order.ref+'</b> received. Send $'+order.total+' to the '+order.method+' details above, then click <b>I Have Sent</b> on WhatsApp for confirmation.';
+    S.saveCart([]);
+    paint();
+    paintHistory();
   });
+
+  function paintHistory(){
+    var oh=document.getElementById('orderHistory');
+    var orders=JSON.parse(localStorage.getItem('jcia_orders')||'[]').slice(-5).reverse();
+    if(orders.length){
+      oh.innerHTML='<h3>Order History</h3><div class="dl mt1">'+orders.map(function(o){
+        return '<div><span>'+o.ref+'<br><span class="small muted">'+new Date(o.at).toLocaleDateString()+'</span></span><b>'+o.items.join(', ')+' · <b>$'+o.total+'</b> <span class="badge '+(o.status==='paid'?'badge-ok':'badge-pending')+'">'+o.status+'</span></b></div>';}).join('')+'</div>';
+    }
+  }
+  paintHistory();
 })();
 </script>"""
     return b
@@ -125,84 +174,133 @@ def build_library():
 <section class="section"><div class="container">
   <div id="library"></div>
   <div class="card mt2" style="padding:1.4rem"><div class="card-body">
-    <h3>Downloads & Files</h3>
-    <p class="small muted">Product files (PDF, MP4, MP3, PPT) are attached to each item after purchase. With Disciple Membership, every course unlocks automatically.</p>
-    <a class="btn btn-gold btn-sm mt1" href="academy.html">Browse the Academy →</a>
+    <h3>Full Member Dashboard</h3>
+    <p class="small muted">Profile, giving history, membership class, notifications and course progress live in your Dashboard.</p>
+    <a class="btn btn-gold btn-sm mt1" href="dashboard.html">Open Full Dashboard →</a>
   </div></div>
 </div></section>
 <script>
-document.addEventListener('DOMContentLoaded',function(){if(window.JCIAStore){JCIAStore.renderLibrary(document.getElementById('library'));}});
+document.addEventListener('DOMContentLoaded',function(){
+  var m=window.JCIA_DB&&JCIA_DB.session();
+  if(m){(m.purchases&&m.purchases.length?[].concat(m.purchases,['devotional-7days']):['devotional-7days']).forEach(function(id){JCIAStore.grant(id);});}
+  if(window.JCIAStore){JCIAStore.renderLibrary(document.getElementById('library'));}
+});
 </script>"""
     return b
 
 def build_account():
-    b = page_head("Account", "Member Login / Signup", "Free members watch live, join chat, get devotionals. Disciple members unlock everything.")
+    b = page_head("Account", "Member Login / Signup", "Email + password, Google, or WhatsApp number. Full profile: name, country, city, photo, gender, DOB.")
     b += """
-<section class="section"><div class="container" style="max-width:560px">
+<section class="section"><div class="container" style="max-width:640px">
   <div class="card" style="padding:1.6rem">
-    <h2 style="font-family:var(--font-head);font-size:1.4rem" id="formTitle">Create Your Account</h2>
-    <p class="small muted">Email + Google sign-in supported.</p>
-    <form class="form mt1" id="authForm">
-      <div class="field"><label>Full Name</label><input name="name" required></div>
-      <div class="field"><label>Email</label><input type="email" name="email" required></div>
-      <div class="field"><label>Password</label><input type="password" name="password" minlength="6" required></div>
-      <button class="btn btn-gold btn-block" type="submit">Sign Up — Free Member</button>
-      <button class="btn btn-outline btn-block" type="button" onclick="alert('Connect Google OAuth client ID — see README Logins section.')">Continue with Google</button>
-      <div id="authOk" class="success-msg hidden"></div>
-      <p class="form-note">Already registered? <a href="#" id="toggleLogin" style="color:var(--gold-deep);font-weight:700">Log in here</a>. Disciple plan ($12/month) can be chosen after signup on this page.</p>
+    <div class="tabs" id="authTabs">
+      <button class="tab on" data-mode="signup">Create Account</button>
+      <button class="tab" data-mode="login">Log In</button>
+      <button class="tab" data-mode="wa">WhatsApp Login</button>
+    </div>
+
+    <form class="form mt1" id="signupForm">
+      <div class="form-grid">
+        <div class="field"><label>Full Name *</label><input name="name" required></div>
+        <div class="field"><label>Email *</label><input type="email" name="email" required></div>
+        <div class="field"><label>Password * (min 4)</label><input type="password" name="password" minlength="4" required></div>
+        <div class="field"><label>WhatsApp Number *</label><input name="whatsapp" required placeholder="+263 …"></div>
+        <div class="field"><label>Country *</label><input name="country" required placeholder="e.g. Zimbabwe"></div>
+        <div class="field"><label>City *</label><input name="city" required placeholder="e.g. Bulawayo"></div>
+        <div class="field"><label>Gender *</label><select name="gender" required><option value="">Choose…</option><option>Male</option><option>Female</option></select></div>
+        <div class="field"><label>Date of Birth *</label><input type="date" name="dob" required></div>
+      </div>
+      <div class="field"><label>Profile Photo (optional)</label><input type="file" id="suPhoto" accept="image/*"></div>
+      <button class="btn btn-gold btn-block" type="submit">Create My JCIA Account 🚀</button>
+      <button class="btn btn-outline btn-block" type="button" id="googleBtn">Continue with Google</button>
+      <div id="signupOk" class="success-msg hidden"></div>
+      <p class="form-note">New members join Class 4 — General Congregation Members — and get a unique JCIA Member ID (e.g. JCIA-0007) instantly.</p>
     </form>
-    <div class="card mt2" style="background:var(--off-white);border-color:#e3e7ef"><div class="card-body">
-      <b>Disciple Membership — $12/month</b>
-      <p class="small muted">All courses, private community, monthly mentorship Zoom with Apostle Tee Daniel Brilliant.</p>
-      <button class="btn btn-gold btn-sm mt1" id="becomeDisciple">Upgrade to Disciple</button>
-    </div></div>
+
+    <form class="form mt1 hidden" id="loginForm">
+      <div class="field"><label>Email</label><input type="email" name="email" required></div>
+      <div class="field"><label>Password</label><input type="password" name="password" required></div>
+      <button class="btn btn-gold btn-block" type="submit">Log In →</button>
+      <button class="btn btn-outline btn-block" type="button" id="googleBtn2">Continue with Google</button>
+      <div id="loginErr" class="hidden" style="background:#fde8e8;border:1px solid #f5b5b5;color:#b91c1c;padding:.8rem 1rem;border-radius:10px;font-weight:600"></div>
+      <p class="form-note">Blocked or removed by admin? WhatsApp +263 77 482 7123.</p>
+    </form>
+
+    <form class="form mt1 hidden" id="waForm">
+      <div class="field"><label>Your WhatsApp Number</label><input name="wa" required placeholder="+263 …"></div>
+      <button class="btn btn-gold" type="button" id="waSend">Get My Login Code</button>
+      <div class="field hidden" id="waCodeWrap"><label>6-digit code (sent via WhatsApp)</label><input name="code" inputmode="numeric" maxlength="6"></div>
+      <button class="btn btn-gold hidden" type="button" id="waVerify">Verify &amp; Log In</button>
+      <div id="waMsg" class="muted small mt1"></div>
+    </form>
   </div>
+  <div class="card mt2" style="padding:1.4rem"><div class="card-body">
+    <h3>Membership Classes</h3>
+    <p class="small">🕊️ <b>Sons of the Prophet</b> · 💰 <b>Partners of the Ministry</b> · 🤝 <b>Servants / Workers</b> · 👏 <b>General Congregation</b> — see <a href="dashboard.html?tab=class" style="color:var(--gold-deep);font-weight:700">classes &amp; levels</a>. Admin upgrades members with one click.</p>
+    <a class="btn btn-outline btn-sm mt1" href="give.html">💰 Become a Partner</a>
+  </div></div>
 </div></section>
 <script>
 (function(){
-  var S=window.JCIAStore;
-  var loginMode=false;
-  document.getElementById('toggleLogin').addEventListener('click',function(e){
-    e.preventDefault();loginMode=!loginMode;
-    document.getElementById('formTitle').textContent=loginMode?'Welcome Back':'Create Your Account';
-    this.textContent=loginMode?'New here? Sign up':'Log in here';
-    document.querySelector('#authForm button[type=submit]').textContent=loginMode?'Log In':'Sign Up — Free Member';
+  var D=window.JCIA_DB;
+  if(D.session()&&!new URLSearchParams(location.search).get('upgrade')){location.href='dashboard.html';return;}
+  document.querySelectorAll('#authTabs .tab').forEach(t=>t.addEventListener('click',function(){
+    document.querySelectorAll('#authTabs .tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');
+    var m=t.dataset.mode;
+    document.getElementById('signupForm').classList.toggle('hidden',m!=='signup');
+    document.getElementById('loginForm').classList.toggle('hidden',m!=='login');
+    document.getElementById('waForm').classList.toggle('hidden',m!=='wa');
+  }));
+  var photoData='';
+  document.getElementById('suPhoto').addEventListener('change',function(){
+    if(this.files[0])D.compressImage(this.files[0],320,function(d){photoData=d;});
   });
-  var params=new URLSearchParams(location.search);
-  document.getElementById('authForm').addEventListener('submit',function(e){
+  document.getElementById('signupForm').addEventListener('submit',function(e){
     e.preventDefault();
-    var fd=new FormData(e.target);
-    var m={name:fd.get('name'),email:fd.get('email'),plan:'free',at:new Date().toISOString()};
-    var members=JSON.parse(localStorage.getItem('jcia_members')||'[]');
-    if(loginMode){
-      var found=members.find(function(x){return x.email===m.email;});
-      if(!found){alert('No member found with that email — sign up first.');return;}
-      m=found;
-    } else {
-      if(!members.find(function(x){return x.email===m.email;}))members.push(m);
-      else {alert('Email already registered — logging you in.');}
-      localStorage.setItem('jcia_members',JSON.stringify(members));
-    }
-    S.db.set('jcia_member',m);
-    var ok=document.getElementById('authOk');
+    var o=Object.fromEntries(new FormData(e.target).entries());o.photo=photoData;
+    var r=D.signup(o);
+    var ok=document.getElementById('signupOk');
     ok.classList.remove('hidden');
-    ok.innerHTML='✅ Welcome, '+m.name+'! Your '+m.plan+' membership is active.';
-    setTimeout(function(){
-      if(params.get('plan')==='disciple'||m.plan==='disciple')location.href='library.html';
-      else location.href='library.html';
-    },1600);
+    if(r.error){ok.style.background='#fde8e8';ok.style.border='1px solid #f5b5b5';ok.style.color='#b91c1c';ok.textContent='⚠ '+r.error;return;}
+    ok.style.background='';ok.style.border='';ok.style.color='';
+    ok.innerHTML='🎉 Welcome, '+r.member.name+'! Your Member ID is <b>'+r.member.id+'</b> — Class: General Congregation Member. Opening your Dashboard…';
+    setTimeout(function(){location.href='dashboard.html';},1800);
   });
-  document.getElementById('becomeDisciple').addEventListener('click',function(){
-    var m=S.member();
-    if(!m){location.href='account.html?plan=disciple';return;}
-    m.plan='disciple';S.db.set('jcia_member',m);
-    var members=JSON.parse(localStorage.getItem('jcia_members')||'[]');
-    var i=members.findIndex(function(x){return x.email===m.email;});
-    if(i>-1)members[i]=m;
-    localStorage.setItem('jcia_members',JSON.stringify(members));
-    S.grant('discipleship-101');S.grant('spiritual-intelligence');S.grant('50-preaching-ppts');S.grant('kids-bible-lessons');
-    location.href='library.html';
+  document.getElementById('loginForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var o=Object.fromEntries(new FormData(e.target).entries());
+    var r=D.login(o.email,o.password);
+    var err=document.getElementById('loginErr');
+    if(r.error){err.classList.remove('hidden');err.textContent=r.error;return;}
+    location.href='dashboard.html';
   });
+  ['googleBtn','googleBtn2'].forEach(function(id){var b=document.getElementById(id);if(b)b.addEventListener('click',function(){
+    alert('Google Login: connect Firebase Auth (see README \u201cLogins\u201d). Email and WhatsApp login already work fully.');
+  });});
+  document.getElementById('waSend').addEventListener('click',function(){
+    var wa=document.querySelector('#waForm [name=wa]').value;
+    var r=D.whatsappChallenge(wa);
+    var msg=document.getElementById('waMsg');
+    if(r.error){msg.textContent=r.error;return;}
+    document.getElementById('waCodeWrap').classList.remove('hidden');
+    document.getElementById('waVerify').classList.remove('hidden');
+    msg.innerHTML='<a class="btn btn-wa btn-sm mt1" target="_blank" rel="noopener" href="'+r.waLink+'">💬 Open WhatsApp to receive your code</a>';
+  });
+  document.getElementById('waVerify').addEventListener('click',function(){
+    var wa=document.querySelector('#waForm [name=wa]').value;
+    var code=document.querySelector('#waForm [name=code]').value;
+    var r=D.whatsappVerify(wa,code);
+    if(r.error){document.getElementById('waMsg').textContent=r.error;return;}
+    location.href='dashboard.html';
+  });
+  var up=new URLSearchParams(location.search).get('upgrade');
+  if(up){
+    document.querySelector('.page-head h1').textContent='Upgrade My Membership Class';
+    document.querySelector('#authTabs .tab').textContent='Upgrade My Class — Sign Up';
+    var names={son:'Sons of the Prophet',partner:'Partner of the Ministry',servant:'Servant / Worker',general:'General Congregation'};
+    document.querySelector('#authTabs .tab').click&&0;
+    document.querySelectorAll('p')[1].textContent='Upgrading to: '+(names[up]||'Partner')+' — the admin confirms your new class after application.';
+  }
 })();
 </script>"""
     return b

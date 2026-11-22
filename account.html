@@ -25,9 +25,17 @@
       <span class="brand-txt"><span class="brand-name">JCIA</span><br><span class="brand-tag">The Good News Embassy</span></span>
     </a>
     <nav class="nav" aria-label="Main"><a href="index.html">Home</a><a href="about.html">About</a><a href="ministries.html">Ministries</a><a href="movement.html">JCIA Movement</a><a href="live.html">Live</a><a href="academy.html">Academy/Shop</a><a href="give.html">Give</a><a href="contact.html">Contact</a></nav>
-    <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    <div class="head-tools">
+      <a class="user-chip" href="dashboard.html" id="userChip" style="text-decoration:none"><span>👤</span><span data-chip-name>Login</span></a>
+      <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="search-box" id="searchBox">
+    <input id="searchInput" placeholder="🔍 Search sermons, products, events, devotional…" aria-label="Search">
+    <div class="search-results" id="searchResults"></div>
   </div>
 </header>
+<div id="google_translate_element" style="position:absolute;right:.6rem;top:3.9rem;z-index:290;background:var(--black);border:1px solid var(--line);border-radius:0 0 10px 10px;overflow:hidden"></div>
 <div class="follow-bar">
   <div class="container fb-inner">
     <span>Follow the Embassy:</span>
@@ -41,72 +49,117 @@
 <main>
 <section class="page-head"><div class="container">
 <div class="crumbs"><a href="index.html">Home</a> / Account</div>
-<h1>Member Login / Signup</h1><p>Free members watch live, join chat, get devotionals. Disciple members unlock everything.</p></div></section>
-<section class="section"><div class="container" style="max-width:560px">
+<h1>Member Login / Signup</h1><p>Email + password, Google, or WhatsApp number. Full profile: name, country, city, photo, gender, DOB.</p></div></section>
+<section class="section"><div class="container" style="max-width:640px">
   <div class="card" style="padding:1.6rem">
-    <h2 style="font-family:var(--font-head);font-size:1.4rem" id="formTitle">Create Your Account</h2>
-    <p class="small muted">Email + Google sign-in supported.</p>
-    <form class="form mt1" id="authForm">
-      <div class="field"><label>Full Name</label><input name="name" required></div>
-      <div class="field"><label>Email</label><input type="email" name="email" required></div>
-      <div class="field"><label>Password</label><input type="password" name="password" minlength="6" required></div>
-      <button class="btn btn-gold btn-block" type="submit">Sign Up — Free Member</button>
-      <button class="btn btn-outline btn-block" type="button" onclick="alert('Connect Google OAuth client ID — see README Logins section.')">Continue with Google</button>
-      <div id="authOk" class="success-msg hidden"></div>
-      <p class="form-note">Already registered? <a href="#" id="toggleLogin" style="color:var(--gold-deep);font-weight:700">Log in here</a>. Disciple plan ($12/month) can be chosen after signup on this page.</p>
+    <div class="tabs" id="authTabs">
+      <button class="tab on" data-mode="signup">Create Account</button>
+      <button class="tab" data-mode="login">Log In</button>
+      <button class="tab" data-mode="wa">WhatsApp Login</button>
+    </div>
+
+    <form class="form mt1" id="signupForm">
+      <div class="form-grid">
+        <div class="field"><label>Full Name *</label><input name="name" required></div>
+        <div class="field"><label>Email *</label><input type="email" name="email" required></div>
+        <div class="field"><label>Password * (min 4)</label><input type="password" name="password" minlength="4" required></div>
+        <div class="field"><label>WhatsApp Number *</label><input name="whatsapp" required placeholder="+263 …"></div>
+        <div class="field"><label>Country *</label><input name="country" required placeholder="e.g. Zimbabwe"></div>
+        <div class="field"><label>City *</label><input name="city" required placeholder="e.g. Bulawayo"></div>
+        <div class="field"><label>Gender *</label><select name="gender" required><option value="">Choose…</option><option>Male</option><option>Female</option></select></div>
+        <div class="field"><label>Date of Birth *</label><input type="date" name="dob" required></div>
+      </div>
+      <div class="field"><label>Profile Photo (optional)</label><input type="file" id="suPhoto" accept="image/*"></div>
+      <button class="btn btn-gold btn-block" type="submit">Create My JCIA Account 🚀</button>
+      <button class="btn btn-outline btn-block" type="button" id="googleBtn">Continue with Google</button>
+      <div id="signupOk" class="success-msg hidden"></div>
+      <p class="form-note">New members join Class 4 — General Congregation Members — and get a unique JCIA Member ID (e.g. JCIA-0007) instantly.</p>
     </form>
-    <div class="card mt2" style="background:var(--off-white);border-color:#e3e7ef"><div class="card-body">
-      <b>Disciple Membership — $12/month</b>
-      <p class="small muted">All courses, private community, monthly mentorship Zoom with Apostle Tee Daniel Brilliant.</p>
-      <button class="btn btn-gold btn-sm mt1" id="becomeDisciple">Upgrade to Disciple</button>
-    </div></div>
+
+    <form class="form mt1 hidden" id="loginForm">
+      <div class="field"><label>Email</label><input type="email" name="email" required></div>
+      <div class="field"><label>Password</label><input type="password" name="password" required></div>
+      <button class="btn btn-gold btn-block" type="submit">Log In →</button>
+      <button class="btn btn-outline btn-block" type="button" id="googleBtn2">Continue with Google</button>
+      <div id="loginErr" class="hidden" style="background:#fde8e8;border:1px solid #f5b5b5;color:#b91c1c;padding:.8rem 1rem;border-radius:10px;font-weight:600"></div>
+      <p class="form-note">Blocked or removed by admin? WhatsApp +263 77 482 7123.</p>
+    </form>
+
+    <form class="form mt1 hidden" id="waForm">
+      <div class="field"><label>Your WhatsApp Number</label><input name="wa" required placeholder="+263 …"></div>
+      <button class="btn btn-gold" type="button" id="waSend">Get My Login Code</button>
+      <div class="field hidden" id="waCodeWrap"><label>6-digit code (sent via WhatsApp)</label><input name="code" inputmode="numeric" maxlength="6"></div>
+      <button class="btn btn-gold hidden" type="button" id="waVerify">Verify &amp; Log In</button>
+      <div id="waMsg" class="muted small mt1"></div>
+    </form>
   </div>
+  <div class="card mt2" style="padding:1.4rem"><div class="card-body">
+    <h3>Membership Classes</h3>
+    <p class="small">🕊️ <b>Sons of the Prophet</b> · 💰 <b>Partners of the Ministry</b> · 🤝 <b>Servants / Workers</b> · 👏 <b>General Congregation</b> — see <a href="dashboard.html?tab=class" style="color:var(--gold-deep);font-weight:700">classes &amp; levels</a>. Admin upgrades members with one click.</p>
+    <a class="btn btn-outline btn-sm mt1" href="give.html">💰 Become a Partner</a>
+  </div></div>
 </div></section>
 <script>
 (function(){
-  var S=window.JCIAStore;
-  var loginMode=false;
-  document.getElementById('toggleLogin').addEventListener('click',function(e){
-    e.preventDefault();loginMode=!loginMode;
-    document.getElementById('formTitle').textContent=loginMode?'Welcome Back':'Create Your Account';
-    this.textContent=loginMode?'New here? Sign up':'Log in here';
-    document.querySelector('#authForm button[type=submit]').textContent=loginMode?'Log In':'Sign Up — Free Member';
+  var D=window.JCIA_DB;
+  if(D.session()&&!new URLSearchParams(location.search).get('upgrade')){location.href='dashboard.html';return;}
+  document.querySelectorAll('#authTabs .tab').forEach(t=>t.addEventListener('click',function(){
+    document.querySelectorAll('#authTabs .tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');
+    var m=t.dataset.mode;
+    document.getElementById('signupForm').classList.toggle('hidden',m!=='signup');
+    document.getElementById('loginForm').classList.toggle('hidden',m!=='login');
+    document.getElementById('waForm').classList.toggle('hidden',m!=='wa');
+  }));
+  var photoData='';
+  document.getElementById('suPhoto').addEventListener('change',function(){
+    if(this.files[0])D.compressImage(this.files[0],320,function(d){photoData=d;});
   });
-  var params=new URLSearchParams(location.search);
-  document.getElementById('authForm').addEventListener('submit',function(e){
+  document.getElementById('signupForm').addEventListener('submit',function(e){
     e.preventDefault();
-    var fd=new FormData(e.target);
-    var m={name:fd.get('name'),email:fd.get('email'),plan:'free',at:new Date().toISOString()};
-    var members=JSON.parse(localStorage.getItem('jcia_members')||'[]');
-    if(loginMode){
-      var found=members.find(function(x){return x.email===m.email;});
-      if(!found){alert('No member found with that email — sign up first.');return;}
-      m=found;
-    } else {
-      if(!members.find(function(x){return x.email===m.email;}))members.push(m);
-      else {alert('Email already registered — logging you in.');}
-      localStorage.setItem('jcia_members',JSON.stringify(members));
-    }
-    S.db.set('jcia_member',m);
-    var ok=document.getElementById('authOk');
+    var o=Object.fromEntries(new FormData(e.target).entries());o.photo=photoData;
+    var r=D.signup(o);
+    var ok=document.getElementById('signupOk');
     ok.classList.remove('hidden');
-    ok.innerHTML='✅ Welcome, '+m.name+'! Your '+m.plan+' membership is active.';
-    setTimeout(function(){
-      if(params.get('plan')==='disciple'||m.plan==='disciple')location.href='library.html';
-      else location.href='library.html';
-    },1600);
+    if(r.error){ok.style.background='#fde8e8';ok.style.border='1px solid #f5b5b5';ok.style.color='#b91c1c';ok.textContent='⚠ '+r.error;return;}
+    ok.style.background='';ok.style.border='';ok.style.color='';
+    ok.innerHTML='🎉 Welcome, '+r.member.name+'! Your Member ID is <b>'+r.member.id+'</b> — Class: General Congregation Member. Opening your Dashboard…';
+    setTimeout(function(){location.href='dashboard.html';},1800);
   });
-  document.getElementById('becomeDisciple').addEventListener('click',function(){
-    var m=S.member();
-    if(!m){location.href='account.html?plan=disciple';return;}
-    m.plan='disciple';S.db.set('jcia_member',m);
-    var members=JSON.parse(localStorage.getItem('jcia_members')||'[]');
-    var i=members.findIndex(function(x){return x.email===m.email;});
-    if(i>-1)members[i]=m;
-    localStorage.setItem('jcia_members',JSON.stringify(members));
-    S.grant('discipleship-101');S.grant('spiritual-intelligence');S.grant('50-preaching-ppts');S.grant('kids-bible-lessons');
-    location.href='library.html';
+  document.getElementById('loginForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var o=Object.fromEntries(new FormData(e.target).entries());
+    var r=D.login(o.email,o.password);
+    var err=document.getElementById('loginErr');
+    if(r.error){err.classList.remove('hidden');err.textContent=r.error;return;}
+    location.href='dashboard.html';
   });
+  ['googleBtn','googleBtn2'].forEach(function(id){var b=document.getElementById(id);if(b)b.addEventListener('click',function(){
+    alert('Google Login: connect Firebase Auth (see README “Logins”). Email and WhatsApp login already work fully.');
+  });});
+  document.getElementById('waSend').addEventListener('click',function(){
+    var wa=document.querySelector('#waForm [name=wa]').value;
+    var r=D.whatsappChallenge(wa);
+    var msg=document.getElementById('waMsg');
+    if(r.error){msg.textContent=r.error;return;}
+    document.getElementById('waCodeWrap').classList.remove('hidden');
+    document.getElementById('waVerify').classList.remove('hidden');
+    msg.innerHTML='<a class="btn btn-wa btn-sm mt1" target="_blank" rel="noopener" href="'+r.waLink+'">💬 Open WhatsApp to receive your code</a>';
+  });
+  document.getElementById('waVerify').addEventListener('click',function(){
+    var wa=document.querySelector('#waForm [name=wa]').value;
+    var code=document.querySelector('#waForm [name=code]').value;
+    var r=D.whatsappVerify(wa,code);
+    if(r.error){document.getElementById('waMsg').textContent=r.error;return;}
+    location.href='dashboard.html';
+  });
+  var up=new URLSearchParams(location.search).get('upgrade');
+  if(up){
+    document.querySelector('.page-head h1').textContent='Upgrade My Membership Class';
+    document.querySelector('#authTabs .tab').textContent='Upgrade My Class — Sign Up';
+    var names={son:'Sons of the Prophet',partner:'Partner of the Ministry',servant:'Servant / Worker',general:'General Congregation'};
+    document.querySelector('#authTabs .tab').click&&0;
+    document.querySelectorAll('p')[1].textContent='Upgrading to: '+(names[up]||'Partner')+' — the admin confirms your new class after application.';
+  }
 })();
 </script></main>
 <div class="cart-bar">
@@ -131,6 +184,9 @@
       <div>
         <h4>Explore</h4>
         <div class="footer-links">
+          <a href="dashboard.html">Member Dashboard</a>
+          <a href="partners.html">Partners Lounge (Gold)</a>
+          <a href="social.html">Social Hub</a>
           <a href="about.html">About the Ministry</a>
           <a href="ministries.html">Ministries</a>
           <a href="movement.html">JCIA Movement</a>
@@ -165,7 +221,73 @@
   </div>
 </footer>
 <script src="assets/js/main.js"></script>
+<script src="assets/js/jcia-db.js"></script>
 <script src="assets/js/store.js"></script>
-<script>JCIAStore && JCIAStore.paintCartBar();</script>
+<script src="assets/js/jcia-assistant.js"></script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateInit" defer></script>
+<script>function googleTranslateInit(){try{new google.translate.TranslateElement({pageLanguage:'en',autoDisplay:false},'google_translate_element');}catch(e){}}
+JCIAStore && JCIAStore.paintCartBar();
+(function(){/* login chip in header */
+  var m = JCIA_DB.session();
+  var chip = document.getElementById('userChip');
+  if(chip && m){chip.querySelector('[data-chip-name]').textContent = m.name.split(' ')[0] + ' · ' + m.id;
+    var ic = chip.querySelector('span'); if(m.photo){var im=document.createElement('img');im.src=m.photo;im.alt='';ic.replaceWith(im);} }
+  else if(chip){chip.querySelector('[data-chip-name]').textContent = 'Login / Join';}
+})();
+
+(function(){/* search overlay: products, events, posts, holdings */
+  var sb = document.getElementById('searchBox'), si = document.getElementById('searchInput'), sr = document.getElementById('searchResults');
+  if(!sb) return;
+  var toggle = document.createElement('button'); toggle.className='tool-btn'; toggle.innerHTML='🔍'; toggle.setAttribute('aria-label','Search');
+  toggle.addEventListener('click', function(){ sb.classList.toggle('open'); if(sb.classList.contains('open')) si.focus(); });
+  $tools = document.querySelector('.head-tools'); $tools.prepend(toggle);
+  var idx = [];
+  JJ = JCIA_DB.content();
+  JJ.products.forEach(function(p){ if(window.JCIA_DB.canView(p.visibility||'everyone', JCIA_DB.session())) idx.push({t:p.title,d:(p.cat||'product')+' · '+(p.price?'$'+p.price:'FREE'),h:'academy.html'}); });
+  (JJ.events||[]).forEach(function(e){ idx.push({t:e.title||e.id, d:(e.type||'event')+' · '+(e.date||''), h:'events.html'}); });
+  (JJ.posts||[]).forEach(function(p){ idx.push({t:p.title||p.id, d:'post · '+(p.date||''), h:'blog.html'}); });
+  [['JCIA Discipleship 101','course · $29','academy.html'],['Spiritual Intelligence Activation','eBook + audio · $19','academy.html'],['7 Days of Good News','free PDF devotional','academy.html'],['Sunday Main Service','service · weekly','live.html'],['Prophetic Service','service · weekly','live.html'],['JCIA Crusade','crusade','events.html']].forEach(function(f){ idx.push({t:f[0],d:f[1],h:f[2]}); });
+  si.addEventListener('input', function(){
+    var q = si.value.toLowerCase(); if(q.length<2){sr.innerHTML='';return;}
+    sr.innerHTML = idx.filter(function(x){return (x.t+' '+x.d).toLowerCase().includes(q);}).slice(0,8)
+      .map(function(x){return '<a href="'+x.h+'"><b>'+x.t+'</b> <span class="muted">'+x.d+'</span></a>';}).join('') || '<a>Nothing found — ask the JCIA Assistant 💬</a>';
+  });
+})();
+/* Edit This Page button (admins only) */
+(function(){
+  var a = JCIA_DB.adminSession();
+  if(a && !document.getElementById('editPageBtn') && window.location.pathname.split('/').pop() !== 'admin.html'){
+    var b = document.createElement('a'); b.id='editPageBtn'; b.href='admin.html#site';
+    b.className='btn btn-gold btn-sm'; b.textContent='✏️ Edit This Page';
+    b.style.cssText='position:fixed;bottom:86px;left:16px;z-index:305;box-shadow:0 8px 22px rgba(0,0,0,.35)';
+    document.body.appendChild(b);
+  }
+})();
+/* Class upgrade congratulations popup */
+(function(){
+  try{
+    var m = JCIA_DB.session(); if(!m || !m.id) return;
+    var k = 'jcia_last_class_' + m.id;
+    var prev = localStorage.getItem(k);
+    var now = (m.memberClass||'general') + '|' + (m.level||'');
+    if(prev && prev !== now){
+      var ov = document.createElement('div'); ov.className='modal';
+      var cls = JCIA_DB.CLASSES[m.memberClass] ? JCIA_DB.CLASSES[m.memberClass].name : 'General Congregation';
+      var isPtr = m.memberClass === 'partner' || m.memberClass === 'son';
+      ov.innerHTML = '<div class="popup-announce modal-card" style="text-align:center;padding:2rem;position:relative;max-width:420px">'
+        + '<button class="modal-x" aria-label="Close" style="position:absolute;right:10px;top:8px;border:none;background:none;font-size:1.4rem;cursor:pointer">✕</button>'
+        + '<div style="font-size:3rem">🎉</div><h2>Congratulations!</h2>'
+        + '<p>New class unlocked: <b>'+cls+' · '+(m.level||'Member')+'</b>.</p>'
+        + '<p class="small muted">Exclusive content has been unlocked in your dashboard'+(isPtr?' and the Partners Lounge':'')+'.</p>'
+        + '<div style="display:flex;gap:.6rem;justify-content:center;margin-top:1rem;flex-wrap:wrap"><a class="btn btn-gold" href="dashboard.html">Open My Dashboard</a>'+(isPtr?'<a class="btn btn-outline" href="partners.html">Partners Lounge</a>':'')+'</div></div>';
+      ov.style.cssText = 'position:fixed;inset:0;background:rgba(4,8,24,.72);z-index:400;display:flex;align-items:center;justify-content:center;padding:1rem';
+      ov.querySelector('.modal-x').onclick = function(){ ov.remove(); };
+      ov.addEventListener('click', function(e){ if(e.target === ov) ov.remove(); });
+      document.body.appendChild(ov);
+    }
+    localStorage.setItem(k, now);
+  }catch(e){}
+})();
+</script>
 </body>
 </html>
