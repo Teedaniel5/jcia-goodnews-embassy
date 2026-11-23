@@ -68,7 +68,14 @@
     fbSyncAt = Date.now();
     JCIA_FB.listDocs("members").then((docs) => {
       const r = mergeFBMembers(docs);
-      fbSyncMsg = "\ud83d\udd25 Firebase connected \u2014 " + r.total + " member" + (r.total === 1 ? "" : "s") + " worldwide loaded" + (r.added ? " (" + r.added + " new)" : "");
+      const have = docs || [];
+      let up = 0;
+      read(MKEY, []).forEach((m) => {
+        if (!m.email) return;
+        const exists = have.some(d => d.id === m.id || String(d.email || "").toLowerCase() === String(m.email).toLowerCase());
+        if (!exists) { up++; fbMirror(m.id, { name: m.name, email: m.email, whatsapp: m.whatsapp, country: m.country, city: m.city, memberClass: m.memberClass, level: m.level, status: m.status, joined: m.joined, adminRole: m.adminRole || "" }); }
+      });
+      fbSyncMsg = "\ud83d\udd25 Firebase connected \u2014 " + r.total + " member" + (r.total === 1 ? "" : "s") + " worldwide loaded" + (r.added ? " (" + r.added + " new)" : "") + (up ? " \u00b7 " + up + " local member" + (up === 1 ? "" : "s") + " uploaded to Firebase" : "");
       render();
     }).catch((e) => {
       fbSyncMsg = "\u26a0 Firebase members sync failed: " + ((e && e.message) || e);
@@ -315,7 +322,9 @@
           <button class="btn btn-gold" id="fbSave">💾 Save &amp; Connect</button>
           <button class="btn btn-outline" id="fbTest">🔌 Test Connection</button>
           <button class="btn btn-outline" id="fbClear" style="border-color:#dc2626;color:#b91c1c">Disconnect</button>
+          <button class="btn btn-outline" id="fbCopySite">📤 Copy Site-Wide Config</button>
         </div>
+        <p class="small muted mt1">🔗 <b>Connect every phone, not just this browser:</b> click <b>Copy Site-Wide Config</b> and send the copied text to your web developer (it is safe to share \u2014 these keys are public by design). It becomes <code>firebase-config.json</code> in the site so ALL members' phones auto-connect on signup, and member numbers stay unique worldwide.</p>
         <details class="acc mt1"><summary>📖 How to connect Firebase — step by step (free)</summary><div class="acc-body">
           <ol style="text-align:left;padding-left:1.2rem">
             <li>Go to <b>console.firebase.google.com</b> → <b>Add project</b> → name it (e.g. <i>jcia-goodnews-embassy</i>) → continue (Analytics optional) → Create.</li>
@@ -357,6 +366,14 @@
         toast(s === "connected" ? "🔌 Connection verified — project " + (JCIA_FB.cfg() && JCIA_FB.cfg().projectId) : "⛔ Firebase test: " + (s === "not-configured" ? "no config saved yet — paste it above and Save & Connect" : s + (JCIA_FB.lastError() ? " — check each field (appId often missed)" : "")));
       };
       $("#fbClear").onclick = () => { if (!confirm("Disconnect Firebase from this site?")) return; JCIA_FB.clearConfig(); paintFb("not-configured"); toast("Disconnected — demo mode"); };
+      const siteCfg = () => { const c = (window.JCIA_FB && JCIA_FB.cfg()) || {}; const keys = ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId"]; const missing = keys.filter(k => !c[k]); if (missing.length) { toast("⛔ Fill all 6 fields and Save & Connect first (missing: " + missing.join(", ") + ")"); return null; } return c; };
+      $("#fbCopySite").onclick = async () => {
+        const c = siteCfg(); if (!c) return;
+        const json = JSON.stringify({ apiKey: c.apiKey, authDomain: c.authDomain, projectId: c.projectId, storageBucket: c.storageBucket, messagingSenderId: c.messagingSenderId, appId: c.appId }, null, 2);
+        try { await navigator.clipboard.writeText(json); }
+        catch (e) { const ta = document.createElement("textarea"); ta.value = json; document.body.appendChild(ta); ta.select(); document.execCommand && document.execCommand("copy"); ta.remove(); }
+        toast("📋 Site-wide Firebase config copied — send it to your web developer");
+      };
     }
     $$("[data-saveprice]").forEach(b => b.onclick = () => {
       const id = b.dataset.saveprice, v = Number(document.querySelector('[data-price="' + id + '"]').value || 0);

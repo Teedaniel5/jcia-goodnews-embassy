@@ -82,7 +82,7 @@
     if (!profile.email || !profile.password || !profile.name) return { error: "Name, email and password are required." };
     if (findByEmail(profile.email)) return { error: "That email already has an account — please log in." };
     const m = {
-      id: nextMemberId(), name: profile.name, email: profile.email,
+      id: profile.preferredId || nextMemberId(), name: profile.name, email: profile.email,
       passwordHash: hash(profile.password), whatsapp: profile.whatsapp || "",
       country: profile.country || "", city: profile.city || "", gender: profile.gender || "",
       dob: profile.dob || "", photo: profile.photo || "",

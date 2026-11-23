@@ -125,6 +125,22 @@
 
   w.JCIA_FB = { cfg, ready, activate, saveConfig, clearConfig, authSignup, authLogin, authGoogle: (cb) => authGoogle(cb), authReset, saveDoc, listDocs, removeDoc, upload, downloadURL, onStatus: (f) => { listeners.push(f); f(status); }, statusNow: () => status, lastError: () => lastError, ERROR_TEXT: mapAuthError };
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => activate());
-  else activate();
+  /* Site-wide discovery: with no per-browser config, adopt the repo's
+     firebase-config.json so every visitor's phone connects automatically. */
+  async function boot() {
+    if (!cfg()) {
+      try {
+        const r = await fetch("firebase-config.json", { cache: "no-store" });
+        if (r.ok) {
+          const c = await r.json();
+          if (c && c.apiKey && c.projectId) {
+            try { localStorage.setItem(K, JSON.stringify(c)); } catch (e) {}
+          }
+        }
+      } catch (e) {}
+    }
+    activate();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
 })(window);

@@ -176,6 +176,14 @@
           ok.textContent='⚠ '+(JCIA_FB.ERROR_TEXT?JCIA_FB.ERROR_TEXT(e2):e2.message);resetBtn();return; }
       }
     }
+    var useFB2 = window.JCIA_FB && JCIA_FB.ready();
+    if(useFB2){
+      try{
+        var docs=await JCIA_FB.listDocs('members'); var mx=0;
+        docs.forEach(function(d){ var mm=String(d.id||'').match(/^JCIA-(\d+)$/); if(mm) mx=Math.max(mx,parseInt(mm[1],10)); });
+        if(mx>0) o.preferredId='JCIA-'+('000'+(mx+1)).slice(-4);
+      }catch(eF){}
+    }
     var r=D.signup(o);
     if(r.error){
       ok.style.background='#fde8e8';ok.style.border='1px solid #f5b5b5';ok.style.color='#b91c1c';
