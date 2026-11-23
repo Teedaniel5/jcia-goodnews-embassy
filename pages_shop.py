@@ -361,11 +361,12 @@ def build_account():
   });
   var up=new URLSearchParams(location.search).get('upgrade');
   if(up){
-    document.querySelector('.page-head h1').textContent='Upgrade My Membership Class';
-    document.querySelector('#authTabs .tab').textContent='Upgrade My Class — Sign Up';
+    var h1=document.querySelector('.page-head h1'); if(h1) h1.textContent='Upgrade My Membership Class';
+    var t0=document.querySelector('#authTabs .tab');
     var names={son:'Sons of the Prophet',partner:'Partner of the Ministry',servant:'Servant / Worker',general:'General Congregation'};
-    document.querySelector('#authTabs .tab').click&&0;
-    document.querySelectorAll('p')[1].textContent='Upgrading to: '+(names[up]||'Partner')+' — the admin confirms your new class after application.';
+    if(t0){ t0.textContent='Upgrade My Class — Sign Up'; t0.click(); }
+    var p2=document.querySelectorAll('p')[1];
+    if(p2) p2.textContent='Upgrading to: '+(names[up]||'Partner')+' — the admin confirms your new class after application.';
   }
 })();
 </script>"""

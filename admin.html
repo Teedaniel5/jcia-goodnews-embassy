@@ -17,6 +17,39 @@
 <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
+<script>
+(function(){
+  function okStore(g){ try{ g().setItem('__jc','1'); g().removeItem('__jc'); return true; }catch(e){ return false; } }
+  if(!okStore(function(){ return window.localStorage; })){
+    var mem={};
+    try{ Object.defineProperty(window,'localStorage',{configurable:true,value:{getItem:function(k){return (k in mem)?mem[k]:null;},setItem:function(k,v){mem[k]=String(v);},removeItem:function(k){delete mem[k];},clear:function(){mem={};},key:function(i){return Object.keys(mem)[i]||null;},get length(){return Object.keys(mem).length;}}}); }catch(e){}
+  }
+  if(!okStore(function(){ return window.sessionStorage; })){
+    var memS={};
+    try{ Object.defineProperty(window,'sessionStorage',{configurable:true,value:{getItem:function(k){return (k in memS)?memS[k]:null;},setItem:function(k,v){memS[k]=String(v);},removeItem:function(k){delete memS[k];},clear:function(){memS={};}}}); }catch(e){}
+  }
+  window.__jcq = window.__jcq || [];
+  window.jciaOnReady = function(fn){
+    if(window.__jciaBooted){ try{ fn(); }catch(e){ if(window.jciaFail) window.jciaFail(e); } }
+    else window.__jcq.push(fn);
+  };
+  window.jciaFail = function(e){
+    try{
+      var m = (e && (e.message || e.code)) || String(e || 'Unknown error');
+      var b = document.getElementById('jciaErrBanner');
+      if(!b){
+        b = document.createElement('div'); b.id = 'jciaErrBanner';
+        b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:20000;background:#b91c1c;color:#fff;padding:.65rem 1rem;font:600 13px Inter,Arial,sans-serif;display:flex;gap:.6rem;align-items:center';
+        b.innerHTML = '<span style="flex:1">⚠ Site error: ' + m + ' — please WhatsApp a screenshot to +263 77 482 7123</span>' +
+          '<button onclick="this.parentNode.remove()" style="background:#fff;color:#b91c1c;border:0;border-radius:8px;padding:.3rem .7rem;font-weight:700">OK</button>';
+        (document.body || document.documentElement).appendChild(b);
+      }
+    }catch(e2){}
+  };
+  window.onerror = function(msg, src, line){ window.jciaFail(msg + (line ? ' (line ' + line + ')' : '')); return false; };
+  window.addEventListener('unhandledrejection', function(ev){ var r = ev && ev.reason; window.jciaFail((r && (r.message || r.code)) || 'Network or sign-in problem — please try again'); });
+})();
+</script>
 <div class="topbar">⚡ &nbsp;<a href="live.html">Sundays 9AM · Wednesdays 6PM — Join the Live Service</a>&nbsp;<a href="give.html" style="margin-left:.6rem">Give</a></div>
 <header class="header">
   <div class="container header-inner">
@@ -24,7 +57,7 @@
       <img src="assets/img/jcia-logo.png" alt="JCIA logo">
       <span class="brand-txt"><span class="brand-name">JCIA</span><br><span class="brand-tag">The Good News Embassy</span></span>
     </a>
-    <nav class="nav" aria-label="Main"><a href="index.html">Home</a><a href="about.html">About</a><a href="ministries.html">Ministries</a><a href="movement.html">JCIA Movement</a><a href="live.html">Live</a><a href="academy.html">Academy/Shop</a><a href="give.html">Give</a><a href="contact.html">Contact</a></nav>
+    <nav class="nav" aria-label="Main">{nav_html}</nav>
     <div class="head-tools">
       <a class="user-chip" href="dashboard.html" id="userChip" style="text-decoration:none"><span>👤</span><span data-chip-name>Login</span></a>
       <button class="tool-btn" id="langBtn" aria-label="Translate / Language" title="Translate this page">🌐</button>
@@ -44,7 +77,7 @@
     <a class="social-btn" data-social="youtube" href="#"></a>
     <a class="social-btn" data-social="instagram" href="#"></a>
     <a class="social-btn" data-social="tiktok" href="#"></a>
-    <a class="btn btn-wa btn-sm" href="https://wa.me/263774827123">💬 WhatsApp</a>
+    <a class="btn btn-wa btn-sm" href="https://wa.me/{WHATSAPP}">💬 WhatsApp</a>
   </div>
 </div>
 <main>
@@ -169,11 +202,13 @@
 <script>function googleTranslateInit(){try{new google.translate.TranslateElement({pageLanguage:'en',autoDisplay:false},'google_translate_element');}catch(e){}}
 JCIAStore && JCIAStore.paintCartBar();
 (function(){/* login chip in header */
-  var m = JCIA_DB.session();
+  var m = (window.JCIA_DB && JCIA_DB.session && JCIA_DB.session()) || null;
   var chip = document.getElementById('userChip');
-  if(chip && m){chip.querySelector('[data-chip-name]').textContent = m.name.split(' ')[0] + ' · ' + m.id;
+  var cn = chip && chip.querySelector('[data-chip-name]');
+  if(!cn) return;
+  if(m){ cn.textContent = m.name.split(' ')[0] + ' · ' + m.id;
     var ic = chip.querySelector('span'); if(m.photo){var im=document.createElement('img');im.src=m.photo;im.alt='';ic.replaceWith(im);} }
-  else if(chip){chip.querySelector('[data-chip-name]').textContent = 'Login / Join';}
+  else cn.textContent = 'Login / Join';
 })();
 
 (function(){/* search overlay: products, events, posts, holdings */
@@ -240,6 +275,13 @@ JCIAStore && JCIAStore.paintCartBar();
     }
     localStorage.setItem(k, now);
   }catch(e){}
+})();
+</script>
+<script>
+window.__jciaBooted = true;
+(function(){
+  var q = window.__jcq || []; window.__jcq = [];
+  q.forEach(function(fn){ try{ fn(); }catch(e){ if(window.jciaFail) window.jciaFail(e); } });
 })();
 </script>
 </body>

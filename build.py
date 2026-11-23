@@ -13,6 +13,64 @@ NAV = [
 ]
 WHATSAPP = "263774827123"
 
+# Runs first on every page (top of body): repairs blocked storage (in-app/private-mode
+# mobile browsers), defines the jciaOnReady boot queue page scripts call, and surfaces
+# any JS error as a visible banner (members send a screenshot instead of "nothing happens").
+SHIM_SCRIPT = """<script>
+(function(){
+  function okStore(g){ try{ g().setItem('__jc','1'); g().removeItem('__jc'); return true; }catch(e){ return false; } }
+  if(!okStore(function(){ return window.localStorage; })){
+    var mem={};
+    try{ Object.defineProperty(window,'localStorage',{configurable:true,value:{getItem:function(k){return (k in mem)?mem[k]:null;},setItem:function(k,v){mem[k]=String(v);},removeItem:function(k){delete mem[k];},clear:function(){mem={};},key:function(i){return Object.keys(mem)[i]||null;},get length(){return Object.keys(mem).length;}}}); }catch(e){}
+  }
+  if(!okStore(function(){ return window.sessionStorage; })){
+    var memS={};
+    try{ Object.defineProperty(window,'sessionStorage',{configurable:true,value:{getItem:function(k){return (k in memS)?memS[k]:null;},setItem:function(k,v){memS[k]=String(v);},removeItem:function(k){delete memS[k];},clear:function(){memS={};}}}); }catch(e){}
+  }
+  window.__jcq = window.__jcq || [];
+  window.jciaOnReady = function(fn){
+    if(window.__jciaBooted){ try{ fn(); }catch(e){ if(window.jciaFail) window.jciaFail(e); } }
+    else window.__jcq.push(fn);
+  };
+  window.jciaFail = function(e){
+    try{
+      var m = (e && (e.message || e.code)) || String(e || 'Unknown error');
+      var b = document.getElementById('jciaErrBanner');
+      if(!b){
+        b = document.createElement('div'); b.id = 'jciaErrBanner';
+        b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:20000;background:#b91c1c;color:#fff;padding:.65rem 1rem;font:600 13px Inter,Arial,sans-serif;display:flex;gap:.6rem;align-items:center';
+        b.innerHTML = '<span style=\"flex:1\">\u26a0 Site error: ' + m + ' \u2014 please WhatsApp a screenshot to +263 77 482 7123</span>' +
+          '<button onclick=\"this.parentNode.remove()\" style=\"background:#fff;color:#b91c1c;border:0;border-radius:8px;padding:.3rem .7rem;font-weight:700\">OK</button>';
+        (document.body || document.documentElement).appendChild(b);
+      }
+    }catch(e2){}
+  };
+  window.onerror = function(msg, src, line){ window.jciaFail(msg + (line ? ' (line ' + line + ')' : '')); return false; };
+  window.addEventListener('unhandledrejection', function(ev){ var r = ev && ev.reason; window.jciaFail((r && (r.message || r.code)) || 'Network or sign-in problem \u2014 please try again'); });
+})();
+</script>"""
+
+# Runs last: every <script src> above is synchronous, so the data layer is loaded
+# before queued page scripts boot; failures are visible (jciaFail), never silent.
+BOOT_FLUSH_SCRIPT = """<script>
+window.__jciaBooted = true;
+(function(){
+  var q = window.__jcq || []; window.__jcq = [];
+  q.forEach(function(fn){ try{ fn(); }catch(e){ if(window.jciaFail) window.jciaFail(e); } });
+})();
+</script>"""
+
+def _wrap_deferred(body):
+    import re
+    def repl(m):
+        open_tag, code = m.group(1), m.group(2)
+        if "src=" in open_tag or "jciaOnReady" in code:
+            return m.group(0)
+        if not re.search(r"JCIA_DB|JCIAStore|JCIA_FB|J\.(members|session|content|login|signup)", code):
+            return m.group(0)
+        return open_tag + "jciaOnReady(function(){" + code + "});</script>"
+    return re.sub(r"(<script(?![^>]*\bsrc=)[^>]*>)([\s\S]*?)</script>", repl, body)
+
 def header(title, desc):
     nav_html = "".join(
         f'<a href="{h}">{l}</a>' for h, l in NAV
@@ -36,6 +94,7 @@ def header(title, desc):
 <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
+""" + SHIM_SCRIPT + """
 <div class="topbar">⚡ &nbsp;<a href="live.html">Sundays 9AM · Wednesdays 6PM — Join the Live Service</a>&nbsp;<a href="give.html" style="margin-left:.6rem">Give</a></div>
 <header class="header">
   <div class="container header-inner">
@@ -139,11 +198,13 @@ def footer():
 """ + """<script>function googleTranslateInit(){try{new google.translate.TranslateElement({pageLanguage:'en',autoDisplay:false},'google_translate_element');}catch(e){}}
 JCIAStore && JCIAStore.paintCartBar();
 (function(){/* login chip in header */
-  var m = JCIA_DB.session();
+  var m = (window.JCIA_DB && JCIA_DB.session && JCIA_DB.session()) || null;
   var chip = document.getElementById('userChip');
-  if(chip && m){chip.querySelector('[data-chip-name]').textContent = m.name.split(' ')[0] + ' · ' + m.id;
+  var cn = chip && chip.querySelector('[data-chip-name]');
+  if(!cn) return;
+  if(m){ cn.textContent = m.name.split(' ')[0] + ' · ' + m.id;
     var ic = chip.querySelector('span'); if(m.photo){var im=document.createElement('img');im.src=m.photo;im.alt='';ic.replaceWith(im);} }
-  else if(chip){chip.querySelector('[data-chip-name]').textContent = 'Login / Join';}
+  else cn.textContent = 'Login / Join';
 })();
 
 (function(){/* search overlay: products, events, posts, holdings */
@@ -212,6 +273,7 @@ JCIAStore && JCIAStore.paintCartBar();
   }catch(e){}
 })();
 </script>
+""" + BOOT_FLUSH_SCRIPT + """
 </body>
 </html>
 """
@@ -575,7 +637,7 @@ def build_all():
     extra["social.html"] = ("Social Hub", "Follow the Good News Embassy on Facebook, YouTube, Instagram and TikTok — latest posts and live updates.", pages_phase2.build_social)
 
     for fname, (ptitle, desc, fn) in extra.items():
-        html = header(ptitle, desc) + fn()
+        html = header(ptitle, desc) + _wrap_deferred(fn())
         body = footer()
         html += body
         try:
