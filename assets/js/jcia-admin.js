@@ -700,6 +700,9 @@
       const st = $("#codeStep"); st.classList.remove("hidden");
       $("#codeMsg").textContent = msg || "";
       const a = $("#waCodeLink"); a.href = waLink;
+      const m = String(waLink || "").match(/code:\\s*(\\d{6})/);
+      const fb = $("#codeFallback");
+      if (fb) { fb.textContent = "\u2022\u2022\u2022\u2022\u2022\u2022"; clearTimeout(window.__jcCodeT); window.__jcCodeT = setTimeout(() => { fb.textContent = (m && m[1]) || "\u2014"; }, 90000); }
     }
     const vb = $("#verifyBtn");
     if (vb) vb.onclick = async () => {
