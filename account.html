@@ -179,9 +179,14 @@
     var useFB2 = window.JCIA_FB && JCIA_FB.ready();
     if(useFB2){
       try{
-        var docs=await JCIA_FB.listDocs('members'); var mx=0;
-        docs.forEach(function(d){ var mm=String(d.id||'').match(/^JCIA-(\d+)$/); if(mm) mx=Math.max(mx,parseInt(mm[1],10)); });
-        if(mx>0) o.preferredId='JCIA-'+('000'+(mx+1)).slice(-4);
+        var txnId=null;
+        try{ txnId=await JCIA_FB.nextMemberId(); }catch(eT){}
+        if(!txnId){
+          var docs=await JCIA_FB.listDocs('members'); var mx=0;
+          docs.forEach(function(d){ var mm=String(d.id||'').match(/^JCIA-(\d+)$/); if(mm) mx=Math.max(mx,parseInt(mm[1],10)); });
+          if(mx>0) txnId='JCIA-'+('000'+(mx+1)).slice(-4);
+        }
+        if(txnId) o.preferredId=txnId;
       }catch(eF){}
     }
     var r=D.signup(o);

@@ -71,9 +71,29 @@ service cloud.firestore {
       allow create, update: if true;
       allow delete: if true;
     }
+    match /meta/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
   }
 }
 ```
+
+## Member IDs are globally unique (server-side)
+
+New signups claim their `JCIA-xxxx` number from a **Firestore transaction** on `meta/memberCounter` (`JCIA_FB.nextMemberId()` in `assets/js/jcia-firebase.js`) — two people signing up at the same moment can never receive the same number. If the counter is unreachable (e.g. rules), the signup falls back to scanning existing members for the highest number; with no Firebase at all it uses the local device counter (demo mode).
+
+## Security: what is real today vs. what needs a server
+
+Be honest about the trust boundary of a static site:
+
+- **Demo-grade (current):** the admin lock (password + WhatsApp code + lockout) and all Firestore/Storage rules run in the browser. With the open demo rules above, anyone with the URL can read or alter the Firestore records. That is acceptable only while testing.
+- **Before real members' data is trusted**, do these in the Firebase console / a small serverless function:
+  1. Set Firestore rules so reads/writes require an authenticated user, and deletes/class-changes require an `admin: true` custom claim (set via Admin SDK in a Cloud Function). Serve.Admin SDK signs `admin` claims; check them in rules with `request.auth.token.admin == true`.
+  2. Move the admin verification (password check + code sending) to the same function — the browser must never hold the real admin secret.
+  3. Serve partner/product downloads through **signed, expiring Storage URLs** generated only after a server-side class check.
+  4. Proxy Gemini AI and payment confirmations through Cloud Functions so keys stay server-side.
+  Points 2–4 are the swap points already marked in `assets/js/jcia-db.js` and `assets/js/jcia-firebase.js`.
 
 ## Production wiring (demo → real)
 

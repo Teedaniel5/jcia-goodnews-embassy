@@ -107,6 +107,19 @@
     await db.collection(col).doc(id).delete();
     return true;
   }
+  /* Globally unique member number: transaction on a shared counter doc,
+     so two simultaneous signups can never receive the same JCIA id. */
+  async function nextMemberId() {
+    if (!ready()) return null;
+    const ref = db.collection("meta").doc("memberCounter");
+    const n = await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      const next = ((snap.exists && snap.data().last) || 0) + 1;
+      tx.set(ref, { last: next });
+      return next;
+    });
+    return "JCIA-" + String(n).padStart(4, "0");
+  }
   async function upload(file, path, onProgress) {
     if (!storage) return null;
     const ref = storage.ref().child(path);
@@ -123,7 +136,7 @@
     return await storage.ref().child(path).getDownloadURL();
   }
 
-  w.JCIA_FB = { cfg, ready, activate, saveConfig, clearConfig, authSignup, authLogin, authGoogle: (cb) => authGoogle(cb), authReset, saveDoc, listDocs, removeDoc, upload, downloadURL, onStatus: (f) => { listeners.push(f); f(status); }, statusNow: () => status, lastError: () => lastError, ERROR_TEXT: mapAuthError };
+  w.JCIA_FB = { cfg, ready, activate, saveConfig, clearConfig, authSignup, authLogin, authGoogle: (cb) => authGoogle(cb), authReset, saveDoc, listDocs, removeDoc, nextMemberId, upload, downloadURL, onStatus: (f) => { listeners.push(f); f(status); }, statusNow: () => status, lastError: () => lastError, ERROR_TEXT: mapAuthError };
 
   /* Site-wide discovery: with no per-browser config, adopt the repo's
      firebase-config.json so every visitor's phone connects automatically. */
