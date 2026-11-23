@@ -135,7 +135,7 @@
   function upsertGoogleMember(u) {
     let m = findByEmail(u.email);
     if (!m) {
-      m = { id: nextMemberId(), name: u.displayName || "JCIA Member", email: String(u.email || "").toLowerCase(), passwordHash: "google:" + u.uid, whatsapp: u.phoneNumber || "", photo: u.photoURL || "", country: "", city: "", gender: "", dob: "", memberClass: "general", level: "Member", status: "active", joined: new Date().toISOString(), purchases: [], givings: [], progress: {}, notifsRead: [] };
+      m = { id: u.preferredId || nextMemberId(), name: u.displayName || "JCIA Member", email: String(u.email || "").toLowerCase(), passwordHash: "google:" + u.uid, whatsapp: u.phoneNumber || "", photo: u.photoURL || "", country: "", city: "", gender: "", dob: "", memberClass: "general", level: "Member", status: "active", joined: new Date().toISOString(), purchases: [], givings: [], progress: {}, notifsRead: [] };
       const all = members(); all.push(m); saveMembers(all);
     }
     if (m.status === "blocked") return { error: "This account is blocked — contact the ministry on WhatsApp." };
