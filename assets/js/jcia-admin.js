@@ -82,7 +82,16 @@
       render();
     });
   }
-  const fbMirror = (id, patch) => { if (fbReady()) JCIA_FB.saveDoc("members", id, patch).catch(() => {}); };
+  const fbMirror = (id, patch) => {
+    if (!fbReady()) return;
+    const me = read(MKEY, []).find(x => x.id === id);
+    const email = me && me.email;
+    JCIA_FB.listDocs("members").then((ds) => {
+      let docId = id;
+      if (email) { const hit = ds.find(d => d.id !== id && String(d.email || "").toLowerCase() === String(email).toLowerCase()); if (hit) docId = hit.id; }
+      return JCIA_FB.saveDoc("members", docId, patch);
+    }).catch(() => {});
+  };
   const fbRemove = (id) => { if (fbReady()) JCIA_FB.removeDoc("members", id).catch(() => {}); };
 
   /* ================= PANES ================= */

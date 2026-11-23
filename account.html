@@ -136,6 +136,16 @@
 <script>jciaOnReady(function(){
 (function(){
   var D=window.JCIA_DB;
+  var mirrorMember=async function(docIdGuess,email,payload){
+    if(!(window.JCIA_FB&&JCIA_FB.ready()))return null;
+    try{
+      var docId=docIdGuess;
+      var ds=await JCIA_FB.listDocs('members');
+      for(var i9=0;i9<ds.length;i9++){ if(String(ds[i9].email||'').toLowerCase()===String(email||'').toLowerCase()){ docId=ds[i9].id; break; } }
+      await JCIA_FB.saveDoc('members',docId,payload);
+      return docId;
+    }catch(e9){ return null; }
+  };
   if(D.session()&&!new URLSearchParams(location.search).get('upgrade')){location.href='dashboard.html';return;}
   document.querySelectorAll('#authTabs .tab').forEach(t=>t.addEventListener('click',function(){
     document.querySelectorAll('#authTabs .tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');
@@ -168,7 +178,7 @@
           var back=D.login(o.email,o.password);
           if(!back.error){ ok.style.background='';ok.style.border='';ok.style.color='';
             ok.innerHTML='🎉 Welcome back, '+back.member.name+'! You already had an account — opening your Dashboard…';
-            try{ if(JCIA_FB.ready()) JCIA_FB.saveDoc('members',back.member.id,{name:back.member.name,email:back.member.email,whatsapp:back.member.whatsapp,country:back.member.country,city:back.member.city,memberClass:back.member.memberClass,joined:back.member.joined}); }catch(e5){}
+            try{ mirrorMember(back.member.id,back.member.email,{name:back.member.name,email:back.member.email,whatsapp:back.member.whatsapp,country:back.member.country,city:back.member.city,memberClass:back.member.memberClass,joined:back.member.joined}); }catch(e5){}
             setTimeout(function(){location.href='dashboard.html';},1800);
           }else{ ok.textContent='⚠ '+(JCIA_FB.ERROR_TEXT?JCIA_FB.ERROR_TEXT(e2):e2.message); resetBtn(); }
           return;
@@ -195,7 +205,7 @@
       ok.textContent='⚠ '+r.error;
       if(useFB&&(r.error||'').toLowerCase().indexOf('already registered')>=0){ try{ await JCIA_FB.authReset(o.email); ok.textContent='⚠ That email already exists. We just emailed you a password-reset link — or simply Log In with the same details.'; }catch(e4){} }
       resetBtn();return;}
-    if(useFB){try{ await JCIA_FB.saveDoc('members',r.member.id,{name:r.member.name,email:r.member.email,whatsapp:r.member.whatsapp,country:r.member.country,city:r.member.city,gender:r.member.gender,dob:r.member.dob,photo:r.member.photo,memberClass:r.member.memberClass,joined:r.member.joined}); }catch(e3){}}
+    if(useFB){try{ await mirrorMember(r.member.id,r.member.email,{name:r.member.name,email:r.member.email,whatsapp:r.member.whatsapp,country:r.member.country,city:r.member.city,gender:r.member.gender,dob:r.member.dob,photo:r.member.photo,memberClass:r.member.memberClass,joined:r.member.joined}); }catch(e3){}}
     ok.style.background='';ok.style.border='';ok.style.color='';
     ok.innerHTML='🎉 Welcome, '+r.member.name+'! Your Member ID is <b>'+r.member.id+'</b> — Class: General Congregation Member'+(useFB?' via Firebase Auth':' (demo mode — this browser)')+'. Opening your Dashboard…';
     setTimeout(function(){location.href='dashboard.html';},1800);
@@ -220,7 +230,7 @@
         if(!fbUser && (fbCode.indexOf('user-not-found')>=0 || fbCode.indexOf('invalid-credential')>=0 || fbCode.indexOf('wrong-password')>=0)){
           try{ await JCIA_FB.authSignup(o); }catch(e4){}
         }
-        try{ await JCIA_FB.saveDoc('members',r.member.id,{name:r.member.name,email:r.member.email,whatsapp:r.member.whatsapp,country:r.member.country,city:r.member.city,gender:r.member.gender,dob:r.member.dob,photo:r.member.photo,memberClass:r.member.memberClass,joined:r.member.joined}); }catch(e5){}
+        try{ await mirrorMember(r.member.id,r.member.email,{name:r.member.name,email:r.member.email,whatsapp:r.member.whatsapp,country:r.member.country,city:r.member.city,gender:r.member.gender,dob:r.member.dob,photo:r.member.photo,memberClass:r.member.memberClass,joined:r.member.joined}); }catch(e5){}
       }
       location.href='dashboard.html'; return;
     }
@@ -228,7 +238,7 @@
       var g=D.upsertGoogleMember({displayName:fbUser.displayName||o.email.split('@')[0],email:o.email,photoURL:fbUser.photoURL||'',uid:fbUser.uid,phoneNumber:''});
       if(g.error){ showErr(g.error); return; }
       try{ D.updateMember(g.member.id,{passwordHash:D.pwHash(o.password)}); }catch(e6){}
-      try{ JCIA_FB.saveDoc('members',g.member.id,{name:g.member.name,email:g.member.email,photo:g.member.photo,provider:'password',joined:g.member.joined}); }catch(e7){}
+      try{ mirrorMember(g.member.id,g.member.email,{name:g.member.name,email:g.member.email,photo:g.member.photo,provider:'password',joined:g.member.joined}); }catch(e7){}
       location.href='dashboard.html'; return;
     }
     var msg = fbCode.indexOf('configuration-not-found')>=0 || fbCode.indexOf('operation-not-allowed')>=0
@@ -245,7 +255,7 @@
       var u=await JCIA_FB.authGoogle();
       var r=D.upsertGoogleMember({displayName:u.displayName,email:u.email,photoURL:u.photoURL,uid:u.uid,phoneNumber:u.phoneNumber});
       if(r.error){alert(r.error);return;}
-      JCIA_FB.saveDoc('members',r.member.id,{name:r.member.name,email:r.member.email,photo:r.member.photo,provider:'google',joined:r.member.joined}).catch(function(){});
+      mirrorMember(r.member.id,r.member.email,{name:r.member.name,email:r.member.email,photo:r.member.photo,provider:'google',joined:r.member.joined});
       location.href='dashboard.html';
     }catch(e2){ alert('Google sign-in: '+(JCIA_FB.ERROR_TEXT?JCIA_FB.ERROR_TEXT(e2):e2.message)); }
   });});
