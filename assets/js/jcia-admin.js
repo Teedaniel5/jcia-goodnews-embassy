@@ -36,10 +36,53 @@
   }
   function hostListHosted(list) { return list || []; }
 
+  /* ==== Firebase member sync: pull every registered member worldwide into the panel ==== */
+  const MKEY = "jcia_members_v2";
+  let fbSyncAt = 0, fbSyncMsg = "";
+  const fbReady = () => window.JCIA_FB && JCIA_FB.ready();
+  function mergeFBMembers(docs) {
+    const cls = D().CLASSES;
+    const all = read(MKEY, []);
+    let added = 0, updated = 0;
+    (docs || []).forEach((doc) => {
+      if (!doc || !doc.email) return;
+      const i = all.findIndex(m => m.id === doc.id || (m.email || "").toLowerCase() === String(doc.email).toLowerCase());
+      if (i >= 0) {
+        const m = Object.assign({}, all[i]);
+        ["name", "email", "whatsapp", "country", "city", "gender", "dob", "photo", "memberClass", "level", "department", "role", "shift", "adminRole", "status", "joined"].forEach(k => { if (doc[k] != null && doc[k] !== "") m[k] = doc[k]; });
+        if (!cls[m.memberClass]) m.memberClass = "general";
+        if (!cls[m.memberClass].levels.includes(m.level || "")) m.level = cls[m.memberClass].levels[0];
+        all[i] = m; updated++;
+      } else {
+        const mc = cls[doc.memberClass] ? doc.memberClass : "general";
+        all.push({ id: doc.id || ("JCIA-" + String(doc.email).substr(0, 4)), name: doc.name || String(doc.email).split("@")[0], email: String(doc.email).toLowerCase(), passwordHash: "fb", whatsapp: doc.whatsapp || "", country: doc.country || "", city: doc.city || "", gender: doc.gender || "", dob: doc.dob || "", photo: doc.photo || "", memberClass: mc, level: cls[mc].levels[0], department: "", role: "", shift: "", adminRole: doc.adminRole || "", status: doc.status || "active", joined: doc.joined || new Date().toISOString(), purchases: [], givings: [], progress: {}, notifsRead: [] });
+        added++;
+      }
+    });
+    if (added || updated) write(MKEY, all);
+    return { added, updated, total: (docs || []).length };
+  }
+  function fbSyncMembers(force) {
+    if (!fbReady()) { fbSyncMsg = ""; return; }
+    if (!force && Date.now() - fbSyncAt < 30000) return;
+    fbSyncAt = Date.now();
+    JCIA_FB.listDocs("members").then((docs) => {
+      const r = mergeFBMembers(docs);
+      fbSyncMsg = "\ud83d\udd25 Firebase connected \u2014 " + r.total + " member" + (r.total === 1 ? "" : "s") + " worldwide loaded" + (r.added ? " (" + r.added + " new)" : "");
+      render();
+    }).catch((e) => {
+      fbSyncMsg = "\u26a0 Firebase members sync failed: " + ((e && e.message) || e);
+      render();
+    });
+  }
+  const fbMirror = (id, patch) => { if (fbReady()) JCIA_FB.saveDoc("members", id, patch).catch(() => {}); };
+  const fbRemove = (id) => { if (fbReady()) JCIA_FB.removeDoc("members", id).catch(() => {}); };
+
   /* ================= PANES ================= */
   const PANES = {};
 
   PANES.overview = () => {
+    fbSyncMembers();
     const ms = D().members();
     const giv = read("jcia_givings", []), orders = read("jcia_orders", []);
     const money = (a) => Number(a && (a.Amount || a.amount) || 0);
@@ -89,6 +132,7 @@
   };
 
   PANES.members = () => {
+    fbSyncMembers();
     const ms = D().members();
     const q = (sessionStorage.getItem("jcia_member_q") || "");
     const filt = ms.filter(m => !q || [m.name, m.country, m.city, m.email, (m.memberClass || "") + " " + (m.level || "")].join(" ").toLowerCase().includes(q.toLowerCase()));
@@ -107,6 +151,7 @@
       </div>
       ${Object.keys(countries).length ? `<div class="card mt1"><h3>By Country</h3><dl>${Object.entries(countries).sort((a, b) => b[1] - a[1]).map(e => `<div class="dl-row"><dt>${esc(e[0])}</dt><dd>${e[1]}</dd></div>`).join("")}</dl>
         <h3 class="mt1">By City</h3><dl>${Object.entries(cities).sort((a, b) => b[1] - a[1]).map(e => `<div class="dl-row"><dt>${esc(e[0])}</dt><dd>${e[1]}</dd></div>`).join("")}</dl></div>` : ""}
+      ${fbSyncMsg ? `<p class="small muted mt1">${fbSyncMsg}</p>` : ""}
       <div id="mList" class="mt1">${memberRows(filt)}</div>`;
     $("#csvBtn").onclick = () => D().exportCSV();
     $("#mSearch").oninput = (e) => { sessionStorage.setItem("jcia_member_q", e.target.value); PANES.members(); const i2 = $("#mSearch"); i2.focus(); i2.setSelectionRange(i2.value.length, i2.value.length); };
@@ -611,9 +656,12 @@
       const t = e.target.closest("[data-cls],[data-lvl]");
       if (!t || t.tagName !== "SELECT") return;
       if (t.dataset.cls != null) {
-        D().setClass(t.dataset.cls, t.value); toast("Class changed — access updated"); render();
+        D().setClass(t.dataset.cls, t.value); toast("Class changed — access updated");
+        const mm = D().members().find(x => x.id === t.dataset.cls);
+        if (mm) fbMirror(mm.id, { memberClass: mm.memberClass, level: mm.level, department: mm.department });
+        render();
       } else if (t.dataset.lvl != null) {
-        D().updateMember(t.dataset.lvl, { level: t.value }); toast("Level changed"); render();
+        D().updateMember(t.dataset.lvl, { level: t.value }); toast("Level changed"); fbMirror(t.dataset.lvl, { level: t.value }); render();
       }
     });
     document.addEventListener("click", (e) => {
@@ -622,15 +670,18 @@
       if (t.dataset.roleBtn != null) {
         const r = prompt("Assign role:\nSuper Admin / President / Media Admin / Finance Admin / Membership Admin\n(leave blank to remove)");
         if (r === null) return;
-        D().updateMember(t.dataset.roleBtn, { adminRole: r.trim() || "" }); toast("Role updated"); render();
+        D().updateMember(t.dataset.roleBtn, { adminRole: r.trim() || "" }); toast("Role updated"); fbMirror(t.dataset.roleBtn, { adminRole: r.trim() || "" }); render();
       } else if (t.dataset.blk != null) {
         const m = D().members().find(x => x.id === t.dataset.blk);
-        D().updateMember(t.dataset.blk, { status: m.status === "blocked" ? "active" : "blocked" });
-        toast(m.status === "blocked" ? "Unblocked" : "⛔ Blocked — cannot login"); render();
+        const newStatus = m.status === "blocked" ? "active" : "blocked";
+        D().updateMember(t.dataset.blk, { status: newStatus });
+        fbMirror(t.dataset.blk, { status: newStatus });
+        toast(newStatus === "blocked" ? "⛔ Blocked — cannot login" : "Unblocked"); render();
       } else if (t.dataset.del != null) {
         if (!confirm("Remove this member permanently? They will not be able to login again.")) return;
         const all = D().members().filter(x => x.id !== t.dataset.del);
         localStorage.setItem("jcia_members_v2", JSON.stringify(all));
+        fbRemove(t.dataset.del);
         toast("🗑 Member removed"); render();
       }
     });

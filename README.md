@@ -61,15 +61,15 @@ Floating gold JCIA-logo button on every page. Answers from a built-in ministry k
 3. **Paste the keys** — open the site → **Admin** (locked login) → **✏️ Edit Site** → **🔥 Firebase** → paste each value → **💾 Save & Connect** → status shows *Connected*. (Values are stored in the browser, not in the code.)
 4. **Turn on what you need** (all free): **Authentication → Sign-in method → Email/Password + Google**; **Firestore Database → Create database**; **Storage → Get started**.
 5. **Authorize your domain** — Authentication → Settings → Authorized domains → add `jcia-goodnews-embassy.vercel.app` (this makes Google login work on the live site).
-6. **Recommended Firestore rules** (starter, tighten for production):
+6. **Firestore rules** (client-side demo — the site talks to Firestore directly from the browser, so members must be publicly readable/writable for the Admin Members panel to load everyone worldwide; tighten with server-verified admin claims before storing anything sensitive):
 ```js
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /members/{docId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if true;
     }
   }
 }
@@ -79,7 +79,7 @@ service cloud.firestore {
 
 The demo stores data in `localStorage` (single browser) and simulates uploads/payments so **nothing is faked as live when it isn't**. Contained swap points, all behind `assets/js/jcia-db.js`:
 
-- **Auth & database** — paste the Firebase config in **Admin ▸ Edit Site ▸ Firebase ▸ Save & Connect** (step-by-step guide is embedded right there). `assets/js/jcia-firebase.js` loads the SDK on demand and gives you **real Firebase Auth**: email+password signup/login, Google sign-in, password-reset emails, Firestore member records (`saveDoc('members', jcia-id, …)`) and **Storage uploads with progress** (products land in `products/<id>_<filename>` and get a download URL). Replace the `J.*` methods (members, session, content) with Firestore reads to move the whole data layer server-side.
+- **Auth & database** — paste the Firebase config in **Admin ▸ Edit Site ▸ Firebase ▸ Save & Connect** (step-by-step guide is embedded right there). `assets/js/jcia-firebase.js` loads the SDK on demand and gives you **real Firebase Auth**: email+password signup/login, Google sign-in, password-reset emails, Firestore member records (`saveDoc('members', jcia-id, …)`, `listDocs('members')`, `removeDoc`) and **Storage uploads with progress** (products land in `products/<id>_<filename>` and get a download URL). With Firebase connected, **Admin ▸ Members loads every member worldwide from Firestore** (auto-merged with the local roster every 30 s) and admin actions (class/level/role/block/remove) are mirrored back to Firestore. Replace the `J.*` methods (members, session, content) with Firestore reads to move the whole data layer server-side.
 - **Security (Admin & Partner files)** — the demo admin lock (password + WhatsApp code + lockout) runs client-side. After connecting Firebase, create the admin accounts in Firebase Auth, add **Firestore/Storage security rules** and an `admin: true` custom claim, then verify the claim server-side before showing admin data and before issuing download links. Partner-visibility items are already hidden from shop, library and download counts and partner download links redirect to `partners.html`; at production, store files in Firebase Storage and serve **signed, expiring URLs generated only after a server-side class check**.
 - **Payments** — insert hosted payment links / a checkout endpoint in `checkout.html` + `give.html`; call the existing `grant`/receipt hooks after server-side confirmation. Bank Transfer + proofs work end-to-end in demo.
 - **Uploads (500MB)** — the admin uploader validates size and shows progress; connect Firebase Storage / Cloudinary resumable uploads at the marked spot.

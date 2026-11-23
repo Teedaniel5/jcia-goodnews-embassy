@@ -120,6 +120,11 @@
     var o=Object.fromEntries(new FormData(e.target).entries());o.photo=photoData;
     var ok=document.getElementById('signupOk');
     ok.classList.remove('hidden');
+    ok.style.background='';ok.style.border='';ok.style.color='';
+    ok.textContent='⏳ Creating your account, please wait…';
+    var btn=e.target.querySelector('[type=submit]');
+    if(btn){ btn.disabled=true; btn.textContent='⏳ Creating…'; }
+    var resetBtn=function(){ if(btn){ btn.disabled=false; btn.textContent='Create My JCIA Account 🚀'; } };
     var useFB = window.JCIA_FB && JCIA_FB.ready();
     if(useFB){
       try{ await JCIA_FB.authSignup(o); }catch(e2){
@@ -132,10 +137,10 @@
             ok.innerHTML='🎉 Welcome back, '+back.member.name+'! You already had an account — opening your Dashboard…';
             try{ if(JCIA_FB.ready()) JCIA_FB.saveDoc('members',back.member.id,{name:back.member.name,email:back.member.email,whatsapp:back.member.whatsapp,country:back.member.country,city:back.member.city,memberClass:back.member.memberClass,joined:back.member.joined}); }catch(e5){}
             setTimeout(function(){location.href='dashboard.html';},1800);
-          }else ok.textContent='⚠ '+(JCIA_FB.ERROR_TEXT?JCIA_FB.ERROR_TEXT(e2):e2.message);
+          }else{ ok.textContent='⚠ '+(JCIA_FB.ERROR_TEXT?JCIA_FB.ERROR_TEXT(e2):e2.message); resetBtn(); }
           return;
         }else{ ok.style.background='#fde8e8';ok.style.border='1px solid #f5b5b5';ok.style.color='#b91c1c';
-          ok.textContent='⚠ '+(JCIA_FB.ERROR_TEXT?JCIA_FB.ERROR_TEXT(e2):e2.message);return; }
+          ok.textContent='⚠ '+(JCIA_FB.ERROR_TEXT?JCIA_FB.ERROR_TEXT(e2):e2.message);resetBtn();return; }
       }
     }
     var r=D.signup(o);
@@ -143,7 +148,7 @@
       ok.style.background='#fde8e8';ok.style.border='1px solid #f5b5b5';ok.style.color='#b91c1c';
       ok.textContent='⚠ '+r.error;
       if(useFB&&(r.error||'').toLowerCase().indexOf('already registered')>=0){ try{ await JCIA_FB.authReset(o.email); ok.textContent='⚠ That email already exists. We just emailed you a password-reset link — or simply Log In with the same details.'; }catch(e4){} }
-      return;}
+      resetBtn();return;}
     if(useFB){try{ await JCIA_FB.saveDoc('members',r.member.id,{name:r.member.name,email:r.member.email,whatsapp:r.member.whatsapp,country:r.member.country,city:r.member.city,gender:r.member.gender,dob:r.member.dob,photo:r.member.photo,memberClass:r.member.memberClass,joined:r.member.joined}); }catch(e3){}}
     ok.style.background='';ok.style.border='';ok.style.color='';
     ok.innerHTML='🎉 Welcome, '+r.member.name+'! Your Member ID is <b>'+r.member.id+'</b> — Class: General Congregation Member'+(useFB?' via Firebase Auth':' (demo mode — this browser)')+'. Opening your Dashboard…';
@@ -153,7 +158,10 @@
     e.preventDefault();
     var o=Object.fromEntries(new FormData(e.target).entries());
     var err=document.getElementById('loginErr');
-    var showErr=function(msg){ err.classList.remove('hidden'); err.innerHTML='⛔ '+msg+'<br><span style="font-weight:400">Tip: you can also Log In with your WhatsApp number (3rd tab), or Create Account with the same email to restore your profile.</span>'; };
+    var btn=e.target.querySelector('[type=submit]');
+    var setBusy=function(b){ if(btn){ btn.disabled=b; btn.textContent=b? '⏳ Signing in, please wait…' : 'Log In →'; } };
+    setBusy(true);
+    var showErr=function(msg){ setBusy(false); err.classList.remove('hidden'); err.innerHTML='⛔ '+msg+'<br><span style="font-weight:400">Tip: you can also Log In with your WhatsApp number (3rd tab), or Create Account with the same email to restore your profile.</span>'; };
     var useFB = window.JCIA_FB && JCIA_FB.ready();
     var fbErr='', fbCode='', fbUser=null;
     if(useFB){

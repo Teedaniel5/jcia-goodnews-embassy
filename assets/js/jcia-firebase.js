@@ -97,6 +97,16 @@
     await db.collection(col).doc(id).set(data, { merge: true });
     return true;
   }
+  async function listDocs(col) {
+    if (!ready()) return [];
+    const snap = await db.collection(col).get();
+    return snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+  }
+  async function removeDoc(col, id) {
+    if (!ready()) return false;
+    await db.collection(col).doc(id).delete();
+    return true;
+  }
   async function upload(file, path, onProgress) {
     if (!storage) return null;
     const ref = storage.ref().child(path);
@@ -113,7 +123,7 @@
     return await storage.ref().child(path).getDownloadURL();
   }
 
-  w.JCIA_FB = { cfg, ready, activate, saveConfig, clearConfig, authSignup, authLogin, authGoogle: (cb) => authGoogle(cb), authReset, saveDoc, upload, downloadURL, onStatus: (f) => { listeners.push(f); f(status); }, statusNow: () => status, lastError: () => lastError, ERROR_TEXT: mapAuthError };
+  w.JCIA_FB = { cfg, ready, activate, saveConfig, clearConfig, authSignup, authLogin, authGoogle: (cb) => authGoogle(cb), authReset, saveDoc, listDocs, removeDoc, upload, downloadURL, onStatus: (f) => { listeners.push(f); f(status); }, statusNow: () => status, lastError: () => lastError, ERROR_TEXT: mapAuthError };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => activate());
   else activate();
