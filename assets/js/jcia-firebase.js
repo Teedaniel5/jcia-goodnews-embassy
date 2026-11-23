@@ -19,7 +19,17 @@
   let lastError = "";
 
   function cfg() { try { return JSON.parse(localStorage.getItem(K) || "null"); } catch (e) { return null; } }
-  function ready() { return !!(app && auth); }
+  function ready() { return !!(app && auth && db); }
+  async function ensureReady() {
+    if (ready()) return true;
+    const c = cfg();
+    if (c && c.apiKey && c.projectId) { await activate(c); return ready(); }
+    try {
+      const r = await fetch("firebase-config.json", { cache: "no-store" });
+      if (r.ok) { const remote = await r.json(); if (remote && remote.apiKey && remote.projectId) { localStorage.setItem(K, JSON.stringify(remote)); await activate(remote); return ready(); } }
+    } catch (e) { lastError = e && e.message ? e.message : String(e); }
+    return false;
+  }
   const emit = (s) => { status = s; w.JCIA_FB_STATUS = s; listeners.forEach(f => { try { f(s); } catch (e) { } }); };
 
   function loadScript(src) {
@@ -136,7 +146,7 @@
     return await storage.ref().child(path).getDownloadURL();
   }
 
-  w.JCIA_FB = { cfg, ready, activate, saveConfig, clearConfig, authSignup, authLogin, authGoogle: (cb) => authGoogle(cb), authReset, saveDoc, listDocs, removeDoc, nextMemberId, upload, downloadURL, onStatus: (f) => { listeners.push(f); f(status); }, statusNow: () => status, lastError: () => lastError, ERROR_TEXT: mapAuthError };
+  w.JCIA_FB = { cfg, ready, ensureReady, activate, saveConfig, clearConfig, authSignup, authLogin, authGoogle: (cb) => authGoogle(cb), authReset, saveDoc, listDocs, removeDoc, nextMemberId, upload, downloadURL, onStatus: (f) => { listeners.push(f); f(status); }, statusNow: () => status, lastError: () => lastError, ERROR_TEXT: mapAuthError };
 
   /* Site-wide discovery: with no per-browser config, adopt the repo's
      firebase-config.json so every visitor's phone connects automatically. */
