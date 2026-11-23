@@ -168,7 +168,8 @@
     var btn=e.target.querySelector('[type=submit]');
     if(btn){ btn.disabled=true; btn.textContent='⏳ Creating…'; }
     var resetBtn=function(){ if(btn){ btn.disabled=false; btn.textContent='Create My JCIA Account 🚀'; } };
-    var useFB = window.JCIA_FB && JCIA_FB.ready();
+    var useFB = !!(window.JCIA_FB && await JCIA_FB.ensureReady());
+    if(!useFB){ ok.style.background='#fde8e8';ok.style.border='1px solid #f5b5b5';ok.style.color='#b91c1c';ok.textContent='⚠ Registration is temporarily unavailable because the secure membership service is not connected. Please try again shortly.';resetBtn();return; }
     if(useFB){
       try{ await JCIA_FB.authSignup(o); }catch(e2){
         var code=(e2&&e2.code)||'';
@@ -205,7 +206,7 @@
       ok.textContent='⚠ '+r.error;
       if(useFB&&(r.error||'').toLowerCase().indexOf('already registered')>=0){ try{ await JCIA_FB.authReset(o.email); ok.textContent='⚠ That email already exists. We just emailed you a password-reset link — or simply Log In with the same details.'; }catch(e4){} }
       resetBtn();return;}
-    if(useFB){try{ await mirrorMember(r.member.id,r.member.email,{name:r.member.name,email:r.member.email,whatsapp:r.member.whatsapp,country:r.member.country,city:r.member.city,gender:r.member.gender,dob:r.member.dob,photo:r.member.photo,memberClass:r.member.memberClass,joined:r.member.joined}); }catch(e3){}}
+    if(useFB){try{ var saved=await mirrorMember(r.member.id,r.member.email,{uid:(window.firebase&&firebase.auth&&firebase.auth().currentUser&&firebase.auth().currentUser.uid)||'',name:r.member.name,email:r.member.email,whatsapp:r.member.whatsapp,country:r.member.country,city:r.member.city,gender:r.member.gender,dob:r.member.dob,photo:r.member.photo,memberClass:r.member.memberClass,level:r.member.level,status:r.member.status,joined:r.member.joined}); if(!saved) throw new Error('Could not save member profile to the central database.'); }catch(e3){ ok.style.background='#fde8e8';ok.style.border='1px solid #f5b5b5';ok.style.color='#b91c1c';ok.textContent='⚠ Your sign-in account was created, but your membership profile could not be saved. Please contact the ministry before trying again.';resetBtn();return;} }
     ok.style.background='';ok.style.border='';ok.style.color='';
     ok.innerHTML='🎉 Welcome, '+r.member.name+'! Your Member ID is <b>'+r.member.id+'</b> — Class: General Congregation Member'+(useFB?' via Firebase Auth':' (demo mode — this browser)')+'. Opening your Dashboard…';
     setTimeout(function(){location.href='dashboard.html';},1800);
@@ -252,10 +253,13 @@
       return;
     }
     try{
+      if(!(await JCIA_FB.ensureReady())){alert('Membership service is unavailable. Please try again shortly.');return;}
       var u=await JCIA_FB.authGoogle();
-      var r=D.upsertGoogleMember({displayName:u.displayName,email:u.email,photoURL:u.photoURL,uid:u.uid,phoneNumber:u.phoneNumber});
+      var centralId=await JCIA_FB.nextMemberId();
+      var r=D.upsertGoogleMember({displayName:u.displayName,email:u.email,photoURL:u.photoURL,uid:u.uid,phoneNumber:u.phoneNumber,preferredId:centralId});
       if(r.error){alert(r.error);return;}
-      mirrorMember(r.member.id,r.member.email,{name:r.member.name,email:r.member.email,photo:r.member.photo,provider:'google',joined:r.member.joined});
+      var saved=await mirrorMember(r.member.id,r.member.email,{uid:u.uid,name:r.member.name,email:r.member.email,photo:r.member.photo,provider:'google',memberClass:r.member.memberClass,level:r.member.level,status:r.member.status,joined:r.member.joined});
+      if(!saved) throw new Error('Could not save your membership profile. Please contact the ministry.');
       location.href='dashboard.html';
     }catch(e2){ alert('Google sign-in: '+(JCIA_FB.ERROR_TEXT?JCIA_FB.ERROR_TEXT(e2):e2.message)); }
   });});
