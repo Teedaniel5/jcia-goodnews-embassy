@@ -195,19 +195,43 @@
     write(K_SETUP, { email: String(email).toLowerCase(), hash: hash(password), code, expires: Date.now() + 6e5 });
     return { stage: "code", waLink: waLinkFor(code, "SETUP"), message: "6-digit setup code sent. Confirm it on WhatsApp +263 77 482 7123, then enter it below." };
   }
-  function adminSetupVerify(email, password, code) {
-    if (lockedNow()) return { error: "Locked \u2014 try again in " + lockRemaining() + " minute(s)." };
+  async function adminSetupVerify(email, password, code) {
+    if (lockedNow()) return { error: "Locked — try again in " + lockRemaining() + " minute(s)." };
     const s = read(K_SETUP, null);
-    if (!s || s.email !== String(email || "").toLowerCase()) return { error: "No setup in progress \u2014 start again." };
-    if (Date.now() > s.expires) return { error: "Code expired \u2014 request a new one." };
+    if (!s || s.email !== String(email || "").toLowerCase()) return { error: "No setup in progress — start again." };
+    if (Date.now() > s.expires) return { error: "Code expired — request a new one." };
     if (s.hash !== hash(password || "")) return { error: "Password differs from the one used when the code was requested." };
     if (String(code || "").trim() !== s.code) { const n = countFail(); return { error: n >= 3 && lockedNow() ? "Wrong code. You are locked for 1 hour." : "Wrong code (attempt " + n + " of 3)." }; }
-    localStorage.removeItem(K_SETUP); resetFails(); bumpEpoch();
-    let all = members(); let m = all.find(x => (x.email || "").toLowerCase() === s.email);
+
+    // Admin setup must create the central Firestore membership record too.
+    if (!w.JCIA_FB || !(await w.JCIA_FB.ensureReady())) return { error: "Firebase is not connected. Refresh and try again; the admin profile was not synchronized." };
+    let central;
+    try { central = await w.JCIA_FB.listDocs("members"); }
+    catch (e) { return { error: "Could not read the central member list: " + ((e && e.message) || e) }; }
+
+    let all = members();
+    let m = all.find(x => (x.email || "").toLowerCase() === s.email);
+    const existing = central.find(x => String(x.email || "").toLowerCase() === s.email);
+    const oldId = m && m.id;
     if (!m) {
       m = { id: nextMemberId(), name: s.email === "audreybrilliant@gmail.com" ? "President Audrey Brilliant" : "Apostle Tee Daniel Brilliant", email: s.email, passwordHash: hash(password), whatsapp: "263774827123", country: "Zimbabwe", city: "Bulawayo", memberClass: "son", level: "Chief Son", adminRole: "Super Admin", status: "active", joined: new Date().toISOString(), purchases: [], givings: [], progress: {}, notifsRead: [] };
       all.push(m); saveMembers(all);
-    } else { m = updateMember(m.id, { passwordHash: hash(password), adminRole: m.adminRole || "Super Admin", status: "active" }); }
+    } else {
+      m = updateMember(m.id, { passwordHash: hash(password), adminRole: m.adminRole || "Super Admin", status: "active" });
+    }
+
+    if (existing) m.id = existing.id;
+    else if (central.some(x => x.id === m.id)) m.id = await w.JCIA_FB.nextMemberId();
+    if (!m.id) return { error: "Could not allocate a unique central member ID. Please try again." };
+
+    const local = members();
+    const idx = local.findIndex(x => (x.email || "").toLowerCase() === s.email);
+    if (idx >= 0) { local[idx] = Object.assign({}, local[idx], { id: m.id }); saveMembers(local); }
+    const profile = { name: m.name, email: m.email, whatsapp: m.whatsapp || "", country: m.country || "", city: m.city || "", memberClass: m.memberClass || "son", level: m.level || "Chief Son", adminRole: m.adminRole || "Super Admin", status: m.status || "active", joined: m.joined || new Date().toISOString() };
+    try { await w.JCIA_FB.saveDoc("members", m.id, profile); }
+    catch (e) { return { error: "Admin profile could not be saved to Firestore: " + ((e && e.message) || e) + ". Check Firestore rules and retry." }; }
+
+    localStorage.removeItem(K_SETUP); resetFails(); bumpEpoch();
     write("jcia_admin_session", { v: 2, epoch: epoch(), memberId: m.id, at: Date.now() });
     D_users_logAdminCreated(m);
     return { ok: true, role: m.adminRole };
