@@ -219,7 +219,8 @@
     var setBusy=function(b){ if(btn){ btn.disabled=b; btn.textContent=b? '⏳ Signing in, please wait…' : 'Log In →'; } };
     setBusy(true);
     var showErr=function(msg){ setBusy(false); err.classList.remove('hidden'); err.innerHTML='⛔ '+msg+'<br><span style="font-weight:400">Tip: you can also Log In with your WhatsApp number (3rd tab), or Create Account with the same email to restore your profile.</span>'; };
-    var useFB = window.JCIA_FB && JCIA_FB.ready();
+    var useFB = !!(window.JCIA_FB && await JCIA_FB.ensureReady());
+    if(!useFB){ showErr('The secure membership service is temporarily unavailable. Please try again shortly.'); return; }
     var fbErr='', fbCode='', fbUser=null;
     if(useFB){
       try{ fbUser = await JCIA_FB.authLogin(o.email,o.password); }
@@ -248,10 +249,6 @@
     showErr(msg + r.error);
   });
   ['googleBtn','googleBtn2'].forEach(function(id){var b=document.getElementById(id);if(b)b.addEventListener('click',async function(){
-    if(!(window.JCIA_FB && JCIA_FB.ready())){
-      alert('Google Login activates with Firebase (free): Admin ▸ Edit Site ▸ Firebase — the step-by-step guide is right there. Email and WhatsApp login work already.');
-      return;
-    }
     try{
       if(!(await JCIA_FB.ensureReady())){alert('Membership service is unavailable. Please try again shortly.');return;}
       var u=await JCIA_FB.authGoogle();
