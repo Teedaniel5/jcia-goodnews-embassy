@@ -661,13 +661,18 @@
       const a = $("#waCodeLink"); a.href = waLink;
     }
     const vb = $("#verifyBtn");
-    if (vb) vb.onclick = () => {
+    if (vb) vb.onclick = async () => {
       if (!pending) { showErr("Verify your password first."); return; }
       const code = $("#codeIn").value.trim();
-      const r = pending.mode === "setup" ? D().adminSetupVerify(pending.email, pending.password, code) : D().adminVerify(pending.email, code);
-      if (r.error) { showErr(r.error); return; }
-      $("#codeStep").classList.add("hidden");
-      enter(r.role);
+      vb.disabled = true;
+      try {
+        const r = pending.mode === "setup" ? await D().adminSetupVerify(pending.email, pending.password, code) : D().adminVerify(pending.email, code);
+        if (r.error) { showErr(r.error); return; }
+        $("#codeStep").classList.add("hidden");
+        enter(r.role);
+      } catch (e) {
+        showErr("Verification failed: " + ((e && e.message) || e));
+      } finally { vb.disabled = false; }
     };
     const cpSave = $("#cpSave");
     if (cpSave) cpSave.onclick = () => {
