@@ -656,70 +656,37 @@
     function refreshLock() {
       const note = $("#lockNote"); if (!note) return;
       const mins = D().lockRemaining();
-      if (mins > 0) { note.classList.remove("hidden"); const lm = $("#lockMin"); if (lm) lm.textContent = "You can log in again in about " + mins + " minute(s) — or unlock right now with a fresh WhatsApp code below."; }
+      if (mins > 0) { note.classList.remove("hidden"); const lm = $("#lockMin"); if (lm) lm.textContent = "You can log in again in about " + mins + " minute(s)."; }
       else note.classList.add("hidden");
     }
     refreshLock();
     setInterval(refreshLock, 30000);
-    const ub = $("#unlockBtn");
-    if (ub) ub.onclick = () => {
-      const em = (prompt("Admin email (approved founder):") || "").trim();
-      if (!em) return;
-      const pw = prompt("Admin password:", "") || "";
-      if (!pw) return;
-      const r = D().adminUnlockStart(em, pw);
-      if (r.error) { showErr(r.error); return; }
-      $("#adminErr").classList.add("hidden");
-      pending = { mode: "unlock", email: em };
-      showStep(r.message || "", r.waLink);
-    };
     const sess = D().adminSession();
     if (sess) enter(sess.adminRole);
-    let pending = null;
-    if (!D().adminExists()) { const n = $("#setupNote"); if (n) n.classList.remove("hidden"); const l = $("#pwLabel"); if (l) l.textContent = "Set your real admin password (min 8)"; const s = $("#pwStepBtn"); if (s) s.textContent = "1 · Send setup code to WhatsApp →"; }
+    if (!D().adminExists()) { const n = $("#setupNote"); if (n) n.classList.remove("hidden"); const l = $("#pwLabel"); if (l) l.textContent = "Create your admin password (min 8)"; const s2 = $("#pwStepBtn"); if (s2) s2.textContent = "Create Admin Account \u2192"; }
     const lf = $("#adminLoginForm");
-    if (lf) lf.onsubmit = (e) => {
+    if (lf) lf.onsubmit = async (e) => {
       e.preventDefault();
       const fd = new FormData(lf);
       const email = fd.get("email"), password = fd.get("password");
-      let r;
-      if (!D().adminExists()) {
-        r = D().adminSetupStart(email, password);
-        if (r.error) { showErr(r.error); return; }
-        pending = { mode: "setup", email, password };
-      } else {
-        r = D().adminLogin(email, password);
-        if (r.error) { showErr(r.error); return; }
-        pending = { mode: "login", email };
-      }
-      $("#adminErr").classList.add("hidden");
-      document.getElementById("pwStepBtn").disabled = true;
-      showStep(r.message || "", r.waLink);
-    };
-    function showStep(msg, waLink) {
-      const st = $("#codeStep"); st.classList.remove("hidden");
-      $("#codeMsg").textContent = msg || "";
-      const a = $("#waCodeLink"); a.href = waLink;
-      const m = String(waLink || "").match(/code:\\s*(\\d{6})/);
-      const fb = $("#codeFallback");
-      if (fb) { fb.textContent = "\u2022\u2022\u2022\u2022\u2022\u2022"; clearTimeout(window.__jcCodeT); window.__jcCodeT = setTimeout(() => { fb.textContent = (m && m[1]) || "\u2014"; }, 90000); }
-    }
-    const vb = $("#verifyBtn");
-    if (vb) vb.onclick = async () => {
-      if (!pending) { showErr("Verify your password first."); return; }
-      const code = $("#codeIn").value.trim();
-      vb.disabled = true;
+      const btn = $("#pwStepBtn");
+      const btnTxt = btn ? btn.textContent : "";
+      if (btn) { btn.disabled = true; btn.textContent = "\u23f3 Checking\u2026"; }
       try {
-        let r;
-        if (pending.mode === "setup") r = await D().adminSetupVerify(pending.email, pending.password, code);
-        else if (pending.mode === "unlock") r = D().adminUnlockVerify(pending.email, code);
-        else r = D().adminVerify(pending.email, code);
-        if (r.error) { showErr(r.error); return; }
-        $("#codeStep").classList.add("hidden");
-        enter(r.role);
-      } catch (e) {
-        showErr("Verification failed: " + ((e && e.message) || e));
-      } finally { vb.disabled = false; }
+        if (!D().adminExists()) {
+          const st = D().adminSetupStart(email, password);
+          if (st.error) { showErr(st.error); return; }
+          const r = await D().adminSetupVerify(email, password, "");
+          if (r.error) { showErr(r.error); return; }
+          enter(r.role);
+        } else {
+          const r = D().adminLogin(email, password);
+          if (r.error) { showErr(r.error); return; }
+          enter(r.role);
+        }
+        $("#adminErr").classList.add("hidden");
+      } catch (e2) { showErr("Login failed: " + ((e2 && e2.message) || e2)); }
+      finally { if (btn) { btn.disabled = false; btn.textContent = btnTxt; } }
     };
     const cpSave = $("#cpSave");
     if (cpSave) cpSave.onclick = () => {

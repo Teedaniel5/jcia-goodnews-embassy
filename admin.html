@@ -88,34 +88,16 @@
   <div class="card" style="max-width:500px;margin-inline:auto;padding:1.6rem">
     <h2 style="font-family:var(--font-head)">🔐 Admin Login — Locked</h2>
     <p class="small muted">Reserved for Apostle Tee Daniel Brilliant, President Audrey Brilliant and approved admins.
-    Login needs <b>1) your admin password</b> set in Admin Settings, plus <b>2) a 6-digit code sent to WhatsApp +263 77 482 7123</b>.
-    3 failed attempts = 1-hour lock.</p>
+    Login needs only your approved Founder email and your admin password — nothing else.
+    3 wrong password attempts = a 1-hour safety lock.</p>
     <p class="small muted hidden" id="setupNote" style="border:1px solid var(--gold);border-radius:10px;padding:.6rem .9rem;color:#8a6d1a">⚠️ No admin exists on this browser yet — <b>First-Time Admin Setup</b> below (runs once, then disappears).</p>
     <form class="form mt1" id="adminLoginForm">
       <div class="field"><label>Admin Email (approved founders only)</label><input type="email" name="email" required placeholder="teedanielbrilliant@gmail.com"></div>
       <div class="field"><label id="pwLabel">Admin Password</label><input type="password" name="password" required minlength="8" placeholder="Your real admin password (min 8)"></div>
-      <button class="btn btn-gold btn-block" type="submit" id="pwStepBtn">1 · Verify password →</button>
+      <button class="btn btn-gold btn-block" type="submit" id="pwStepBtn">Enter Admin →</button>
       <div id="adminErr" class="hidden" style="background:#fde8e8;border:1px solid #f5b5b5;color:#b91c1c;padding:.8rem 1rem;border-radius:10px;font-weight:600"></div>
       <div id="lockNote" class="hidden" style="background:#fff7e6;border:1px solid var(--gold);border-radius:10px;padding:.9rem 1rem;color:#8a6d1a">
-        <b>⏳ Security lock active.</b> <span id="lockMin" class="small"></span>
-        <button class="btn btn-gold btn-block mt1" type="button" id="unlockBtn">🔓 Locked out? Unlock now with a WhatsApp code</button>
-        <p class="small mt1" style="color:#8a6d1a">Unlock needs <b>your admin password</b> plus a <b>fresh 6-digit code</b> sent to WhatsApp +263 77 482 7123 — only you can do this.</p>
-      </div>
-      <div id="codeStep" class="hidden" style="border:1px solid var(--gold);border-radius:12px;padding:1rem;background:#fffdf4;text-align:left">
-        <b style="color:#8a6d1a">2 · WhatsApp Verification</b>
-        <p class="small" id="codeMsg" style="color:#374151"></p>
-        <ol class="small" style="color:#374151;margin:.3rem 0 .6rem 1.1rem;padding:0">
-          <li>Tap the green <b>Open WhatsApp</b> button below.</li>
-          <li>WhatsApp opens with a code message <b>already typed for you</b> — press <b>SEND</b> inside WhatsApp (nothing arrives by itself).</li>
-          <li>Read the 6-digit code from that message and type it below. Valid 10 minutes.</li>
-        </ol>
-        <a class="btn btn-wa btn-sm" id="waCodeLink" target="_blank" rel="noopener">💬 Open WhatsApp — your code is in the message</a>
-        <div class="field mt1"><label>Enter the 6-digit code</label><input id="codeIn" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="••••••" style="letter-spacing:.4em;font-size:1.2rem;text-align:center"></div>
-        <button class="btn btn-gold btn-block" type="button" id="verifyBtn">Verify code &amp; Enter Admin →</button>
-        <details class="small mt1" style="color:#6b7280">
-          <summary>WhatsApp not working on this device?</summary>
-          <p class="small" style="color:#6b7280">Emergency fallback: your code appears here automatically 90 seconds after this step opens — <b id="codeFallback" style="letter-spacing:.3em;font-size:1.1rem;color:#8a6d1a">••••••</b></p>
-        </details>
+        <b style="color:#8a6d1a">&#9203; Security lock active.</b> <span id="lockMin" class="small"></span>
       </div>
     </form>
     <p class="form-note">Demo note: this lock runs fully client-side until Firebase is connected. After connecting Firebase (Admin ▸ Edit Site ▸ Firebase), member accounts authenticate server-side — README ▸ Security shows how to move this admin gate to Firebase Auth + custom claims.</p>
