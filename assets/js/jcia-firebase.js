@@ -16,10 +16,11 @@
   let app = null, auth = null, db = null, storage = null;
   const listeners = [];
   let status = "not-configured";
+  let lastError = "";
 
   function cfg() { try { return JSON.parse(localStorage.getItem(K) || "null"); } catch (e) { return null; } }
   function ready() { return !!(app && auth); }
-  const emit = (s) => { status = s; listeners.forEach(f => { try { f(s); } catch (e) { } }); };
+  const emit = (s) => { status = s; w.JCIA_FB_STATUS = s; listeners.forEach(f => { try { f(s); } catch (e) { } }); };
 
   function loadScript(src) {
     return new Promise((res, rej) => {
@@ -42,15 +43,17 @@
       auth = app.auth(); db = app.firestore(); storage = app.storage();
       emit("connected");
       return app;
-    } catch (e) { emit("error: " + e.message); return null; }
+    } catch (e) { lastError = e && e.message ? e.message : String(e); emit("error: " + lastError); return null; }
+    lastError = "";
   }
 
   function saveConfig(c) {
     const clean = Object.fromEntries(Object.entries(c || {}).map(([k, v]) => [k, String(v || "").trim()]));
+    if (!Object.values(clean).some(v => v)) return null; /* empty form must not wipe a good config */
     localStorage.setItem(K, JSON.stringify(clean));
     return activate(clean);
   }
-  function clearConfig() { localStorage.removeItem(K); emit("not-configured"); }
+  function clearConfig() { localStorage.removeItem(K); app = null; auth = null; db = null; storage = null; emit("not-configured"); }
 
   const mapAuthError = (e) => {
     const code = (e && e.code) || "";
@@ -107,7 +110,7 @@
     return await storage.ref().child(path).getDownloadURL();
   }
 
-  w.JCIA_FB = { cfg, ready, activate, saveConfig, clearConfig, authSignup, authLogin, authGoogle: (cb) => authGoogle(cb), authReset, saveDoc, upload, downloadURL, onStatus: (f) => { listeners.push(f); if (status !== "not-configured") f(status); }, ERROR_TEXT: mapAuthError };
+  w.JCIA_FB = { cfg, ready, activate, saveConfig, clearConfig, authSignup, authLogin, authGoogle: (cb) => authGoogle(cb), authReset, saveDoc, upload, downloadURL, onStatus: (f) => { listeners.push(f); f(status); }, statusNow: () => status, lastError: () => lastError, ERROR_TEXT: mapAuthError };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => activate());
   else activate();

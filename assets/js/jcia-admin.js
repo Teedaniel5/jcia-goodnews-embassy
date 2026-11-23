@@ -299,9 +299,18 @@
       const paintFb = (s) => {
         fbSt.textContent = s === "connected" ? "🔥 Connected — real Firebase Auth + Firestore + Storage" : (String(s).indexOf("error") === 0 ? "⛔ " + s : (s === "not-configured" ? "Not configured — demo mode" : s));
       };
-      JCIA_FB.onStatus(paintFb); paintFb(window.JCIA_FB_STATUS || "not-configured");
-      $("#fbSave").onclick = () => JCIA_FB.saveConfig({ apiKey: $("#fbKey").value, authDomain: $("#fbDomain").value, projectId: $("#fbProj").value, storageBucket: $("#fbBucket").value, messagingSenderId: $("#fbSender").value, appId: $("#fbApp").value }).then(() => toast("🔥 Firebase config saved — connecting…"));
-      $("#fbTest").onclick = async () => { await JCIA_FB.activate(); paintFb(window.JCIA_FB_STATUS || "not-configured"); toast("Firebase: " + (window.JCIA_FB_STATUS || "?")); };
+      JCIA_FB.onStatus(paintFb); paintFb(JCIA_FB.statusNow());
+      $("#fbSave").onclick = async () => {
+        await JCIA_FB.saveConfig({ apiKey: $("#fbKey").value, authDomain: $("#fbDomain").value, projectId: $("#fbProj").value, storageBucket: $("#fbBucket").value, messagingSenderId: $("#fbSender").value, appId: $("#fbApp").value });
+        paintFb(JCIA_FB.statusNow());
+        toast(JCIA_FB.statusNow() === "connected" ? "🔥 Firebase connected — real Auth, Firestore & Storage are live" : "⛔ Firebase: " + (JCIA_FB.statusNow() === "not-configured" ? "config incomplete (apiKey, projectId and appId required)" : JCIA_FB.statusNow()));
+      };
+      $("#fbTest").onclick = async () => {
+        await JCIA_FB.activate();
+        paintFb(JCIA_FB.statusNow());
+        const s = JCIA_FB.statusNow();
+        toast(s === "connected" ? "🔌 Connection verified — project " + (JCIA_FB.cfg() && JCIA_FB.cfg().projectId) : "⛔ Firebase test: " + (s === "not-configured" ? "no config saved yet — paste it above and Save & Connect" : s + (JCIA_FB.lastError() ? " — check each field (appId often missed)" : "")));
+      };
       $("#fbClear").onclick = () => { if (!confirm("Disconnect Firebase from this site?")) return; JCIA_FB.clearConfig(); paintFb("not-configured"); toast("Disconnected — demo mode"); };
     }
     $$("[data-saveprice]").forEach(b => b.onclick = () => {
