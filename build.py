@@ -46,6 +46,7 @@ def header(title, desc):
     <nav class="nav" aria-label="Main">{nav_html}</nav>
     <div class="head-tools">
       <a class="user-chip" href="dashboard.html" id="userChip" style="text-decoration:none"><span>👤</span><span data-chip-name>Login</span></a>
+      <button class="tool-btn" id="langBtn" aria-label="Translate / Language" title="Translate this page">🌐</button>
       <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
   </div>
@@ -54,7 +55,7 @@ def header(title, desc):
     <div class="search-results" id="searchResults"></div>
   </div>
 </header>
-<div id="google_translate_element" style="position:absolute;right:.6rem;top:3.9rem;z-index:290;background:var(--black);border:1px solid var(--line);border-radius:0 0 10px 10px;overflow:hidden"></div>
+<div id="google_translate_element"></div>
 <div class="follow-bar">
   <div class="container fb-inner">
     <span>Follow the Embassy:</span>
@@ -161,6 +162,18 @@ JCIAStore && JCIAStore.paintCartBar();
     var q = si.value.toLowerCase(); if(q.length<2){sr.innerHTML='';return;}
     sr.innerHTML = idx.filter(function(x){return (x.t+' '+x.d).toLowerCase().includes(q);}).slice(0,8)
       .map(function(x){return '<a href="'+x.h+'"><b>'+x.t+'</b> <span class="muted">'+x.d+'</span></a>';}).join('') || '<a>Nothing found — ask the JCIA Assistant 💬</a>';
+  });
+})();
+/* Language toggle: 🌐 opens/closes the translate widget so it never blocks buttons */
+(function(){
+  var lb = document.getElementById('langBtn'), gte = document.getElementById('google_translate_element');
+  if(!lb || !gte) return;
+  lb.addEventListener('click', function(e){
+    e.stopPropagation();
+    gte.classList.toggle('open');
+  });
+  document.addEventListener('click', function(e){
+    if(gte.classList.contains('open') && !gte.contains(e.target) && e.target !== lb) gte.classList.remove('open');
   });
 })();
 /* Edit This Page button (admins only) */
