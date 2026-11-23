@@ -578,8 +578,14 @@ def build_all():
         html = header(ptitle, desc) + fn()
         body = footer()
         html += body
-        with open(os.path.join(ROOT, fname), "w", encoding="utf-8") as fh:
-            fh.write(html)
+        try:
+            with open(os.path.join(ROOT, fname), "w", encoding="utf-8") as fh:
+                fh.write(html)
+        except UnicodeEncodeError as ue:
+            import sys
+            bad = html[ue.start:ue.end]
+            print("SURROGATES while writing", fname, "position", ue.start, "context:", repr(bad), file=sys.stderr)
+            raise
         print("built", fname, len(html), "bytes")
 
 if __name__ == "__main__":

@@ -101,7 +101,7 @@ def build_give():
     if(m){ok.innerHTML+=' Your gift is saved in your <a href="dashboard.html?tab=giving" style="font-weight:700;color:#13713a">Giving History</a>.';}
     document.getElementById('proofBox').classList.remove('hidden');
     ok.scrollIntoView({behavior:'smooth',block:'center'});
-    window.open('https://wa.me/263774827123?text='+encodeURIComponent('GIVING\nRef: '+o.ref+'\nName: '+(o.Name||'')+'\nType: '+o.Purpose+' ('+freq+')\nAmount: $'+o.Amount+'\nMethod: '+o.Method),'_blank');
+    window.open('https://wa.me/263774827123?text='+encodeURIComponent('GIVING\\nRef: '+o.ref+'\\nName: '+(o.Name||'')+'\\nType: '+o.Purpose+' ('+freq+')\\nAmount: $'+o.Amount+'\\nMethod: '+o.Method),'_blank');
   });
 
   document.getElementById('iHaveSent').addEventListener('click',function(){

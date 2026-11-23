@@ -57,13 +57,16 @@
 
   const mapAuthError = (e) => {
     const code = (e && e.code) || "";
+    if (code.includes("configuration-not-found") || code.includes("operation-not-allowed")) return "Firebase needs Email/Password enabled: Firebase console ▸ Authentication ▸ Sign-in method ▸ enable Email/Password, then try again.";
     if (code.includes("email-already-in-use")) return "That email already has an account — please Log In instead.";
     if (code.includes("invalid-email")) return "That email address is not valid.";
     if (code.includes("weak-password")) return "Password too weak — use at least 6 characters.";
-    if (code.includes("wrong-password") || code.includes("invalid-credential") || code.includes("user-not-found")) return "Wrong email or password.";
+    if (code.includes("wrong-password") || code.includes("invalid-credential") || code.includes("user-not-found")) return "No Firebase account with those details yet — if you registered before Firebase was connected, simply use the same email and password you signed up with; the site will recognise you.";
     if (code.includes("too-many-requests")) return "Too many attempts — please wait a moment and retry.";
+    if (code.includes("network")) return "Network error — check your connection and retry.";
     if (code.includes("popup-closed") || code.includes("cancelled-popup")) return "Google sign-in was cancelled.";
     if (code.includes("unauthorized-domain")) return "This domain is not authorised in Firebase ▸ Authentication ▸ Settings ▸ Authorized domains. Add your Vercel domain.";
+    if (code.includes("api-key-not-valid")) return "The Firebase apiKey does not look valid — re-check the values in Admin ▸ Edit Site ▸ Firebase.";
     return (e && e.message) || "Authentication failed.";
   };
 

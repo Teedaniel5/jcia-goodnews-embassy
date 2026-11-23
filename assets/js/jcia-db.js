@@ -354,5 +354,5 @@
   }
   document.addEventListener("DOMContentLoaded", paintContent);
 
-  w.JCIA_DB = { CLASSES, VIS_OPTIONS, content, setContent, members, signup, login, logout, session, updateMember, setClass, memberRank, adminLogin, adminVerify, adminSetupStart, adminSetupVerify, adminExists, changeAdminPassword, revokeAllAdminSessions, lockRemaining, adminSession, adminLogout, adminCan, canView, visLabel, notify, exportCSV, exportBackup, compressImage, findByEmail, findByWhatsApp, whatsappChallenge, whatsappVerify, upsertGoogleMember };
+  w.JCIA_DB = { CLASSES, VIS_OPTIONS, content, setContent, members, signup, login, logout, session, updateMember, setClass, memberRank, adminLogin, adminVerify, adminSetupStart, adminSetupVerify, adminExists, changeAdminPassword, revokeAllAdminSessions, lockRemaining, adminSession, adminLogout, adminCan, canView, visLabel, notify, exportCSV, exportBackup, compressImage, findByEmail, findByWhatsApp, whatsappChallenge, whatsappVerify, upsertGoogleMember, pwHash: hash };
 })(window);
