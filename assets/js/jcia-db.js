@@ -191,7 +191,6 @@
   /* first-time setup: once, only the two founder emails, only while no admin exists.
      Simplified per the Apostles request: email + password only (no WhatsApp code). */
   function adminSetupStart(email, password) {
-    if (lockedNow()) return { error: "Locked after failed attempts \u2014 try again in " + lockRemaining() + " minute(s)." };
     if (adminExists()) return { error: "An admin already exists. Log in normally." };
     if (!isFounder(email)) return { error: "Setup is reserved for the approved Founder emails only." };
     if (!password || password.length < 8) return { error: "Set a real password \u2014 minimum 8 characters." };
@@ -200,7 +199,6 @@
     return { ok: true };
   }
   async function adminSetupVerify(email, password, code) {
-    if (lockedNow()) return { error: "Locked — try again in " + lockRemaining() + " minute(s)." };
     const s = read(K_SETUP, null);
     if (!s || s.email !== String(email || "").toLowerCase()) return { error: "No setup in progress — start again." };
     if (s.hash !== hash(password || "")) return { error: "Password differs from the one used when setup started." };
@@ -240,11 +238,10 @@
   }
   /* regular admin login: password THEN WhatsApp 6-digit code */
   function adminLogin(email, password) {
-    if (lockedNow()) return { error: "Too many failed attempts. Locked for " + lockRemaining() + " more minute(s)." };
     if (!adminExists()) return { error: "Admin is not set up yet. Use First-Time Admin Setup below." };
     if (!isFounder(email)) return { error: "Not authorized. Only approved admins may enter." };
     const m = members().find(x => x.adminRole && x.status !== "blocked" && (x.email || "").toLowerCase() === String(email || "").toLowerCase());
-    if (!m || m.passwordHash !== hash(password || "")) { const n = countFail(); return { error: n >= 3 && lockedNow() ? "Wrong credentials. You are locked for 1 hour." : "Wrong email or password (attempt " + n + " of 3, then 1-hour lock)." }; }
+    if (!m || m.passwordHash !== hash(password || "")) return { error: "Wrong email or password. Try again, or reset it with First-Time Admin Setup below." };
     resetFails(); bumpEpoch();
     write("jcia_admin_session", { v: 2, epoch: epoch(), memberId: m.id, at: Date.now() });
     ensureAdminCentralProfile(email, m.id);

@@ -8,21 +8,17 @@ def build_admin():
     b += """
 <section class="section"><div class="container" id="adminAuth">
   <div class="card" style="max-width:500px;margin-inline:auto;padding:1.6rem">
-    <h2 style="font-family:var(--font-head)">🔐 Admin Login — Locked</h2>
+    <h2 style="font-family:var(--font-head)">🔐 Admin Login</h2>
     <p class="small muted">Reserved for Apostle Tee Daniel Brilliant, President Audrey Brilliant and approved admins.
-    Login needs only your approved Founder email and your admin password — nothing else.
-    3 wrong password attempts = a 1-hour safety lock.</p>
+    Login needs only your approved Founder email and your admin password — nothing else.</p>
     <p class="small muted hidden" id="setupNote" style="border:1px solid var(--gold);border-radius:10px;padding:.6rem .9rem;color:#8a6d1a">⚠️ No admin exists on this browser yet — <b>First-Time Admin Setup</b> below (runs once, then disappears).</p>
     <form class="form mt1" id="adminLoginForm">
       <div class="field"><label>Admin Email (approved founders only)</label><input type="email" name="email" required placeholder="teedanielbrilliant@gmail.com"></div>
       <div class="field"><label id="pwLabel">Admin Password</label><input type="password" name="password" required minlength="8" placeholder="Your real admin password (min 8)"></div>
       <button class="btn btn-gold btn-block" type="submit" id="pwStepBtn">Enter Admin →</button>
       <div id="adminErr" class="hidden" style="background:#fde8e8;border:1px solid #f5b5b5;color:#b91c1c;padding:.8rem 1rem;border-radius:10px;font-weight:600"></div>
-      <div id="lockNote" class="hidden" style="background:#fff7e6;border:1px solid var(--gold);border-radius:10px;padding:.9rem 1rem;color:#8a6d1a">
-        <b style="color:#8a6d1a">&#9203; Security lock active.</b> <span id="lockMin" class="small"></span>
-      </div>
-    </form>
-    <p class="form-note">Demo note: this lock runs fully client-side until Firebase is connected. After connecting Firebase (Admin ▸ Edit Site ▸ Firebase), member accounts authenticate server-side — README ▸ Security shows how to move this admin gate to Firebase Auth + custom claims.</p>
+
+    <p class="form-note">Keep your admin password private — only the approved Founder emails below can ever hold an admin account.</p>
   </div>
 </div>
 <div class="container admin-wrap hidden" id="adminRoot">

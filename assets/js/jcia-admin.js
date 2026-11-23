@@ -652,15 +652,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     if (!$("#panel")) return;
-    const showErr = (msg) => { const er = $("#adminErr"); er.textContent = "⛔ " + msg; er.classList.remove("hidden"); refreshLock(); };
-    function refreshLock() {
-      const note = $("#lockNote"); if (!note) return;
-      const mins = D().lockRemaining();
-      if (mins > 0) { note.classList.remove("hidden"); const lm = $("#lockMin"); if (lm) lm.textContent = "You can log in again in about " + mins + " minute(s)."; }
-      else note.classList.add("hidden");
-    }
-    refreshLock();
-    setInterval(refreshLock, 30000);
+    const showErr = (msg) => { const er = $("#adminErr"); er.textContent = "⛔ " + msg; er.classList.remove("hidden"); };
     const sess = D().adminSession();
     if (sess) enter(sess.adminRole);
     if (!D().adminExists()) { const n = $("#setupNote"); if (n) n.classList.remove("hidden"); const l = $("#pwLabel"); if (l) l.textContent = "Create your admin password (min 8)"; const s2 = $("#pwStepBtn"); if (s2) s2.textContent = "Create Admin Account \u2192"; }
