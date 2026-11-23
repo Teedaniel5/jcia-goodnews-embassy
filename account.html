@@ -237,10 +237,11 @@
       location.href='dashboard.html'; return;
     }
     if(fbUser){
-      var g=D.upsertGoogleMember({displayName:fbUser.displayName||o.email.split('@')[0],email:o.email,photoURL:fbUser.photoURL||'',uid:fbUser.uid,phoneNumber:''});
+      var loginId=await JCIA_FB.nextMemberId();
+      var g=D.upsertGoogleMember({displayName:fbUser.displayName||o.email.split('@')[0],email:o.email,photoURL:fbUser.photoURL||'',uid:fbUser.uid,phoneNumber:'',preferredId:loginId});
       if(g.error){ showErr(g.error); return; }
       try{ D.updateMember(g.member.id,{passwordHash:D.pwHash(o.password)}); }catch(e6){}
-      try{ mirrorMember(g.member.id,g.member.email,{name:g.member.name,email:g.member.email,photo:g.member.photo,provider:'password',joined:g.member.joined}); }catch(e7){}
+      try{ var savedLogin=await mirrorMember(g.member.id,g.member.email,{uid:fbUser.uid,name:g.member.name,email:g.member.email,photo:g.member.photo,provider:'password',memberClass:g.member.memberClass,level:g.member.level,status:g.member.status,joined:g.member.joined}); if(!savedLogin) throw new Error('Could not save your central membership profile.'); }catch(e7){ showErr('Your login worked, but your central member profile could not be saved. Please retry or contact the ministry.'); return; }
       location.href='dashboard.html'; return;
     }
     var msg = fbCode.indexOf('configuration-not-found')>=0 || fbCode.indexOf('operation-not-allowed')>=0
