@@ -96,6 +96,11 @@
       <div class="field"><label id="pwLabel">Admin Password</label><input type="password" name="password" required minlength="8" placeholder="Your real admin password (min 8)"></div>
       <button class="btn btn-gold btn-block" type="submit" id="pwStepBtn">1 · Verify password →</button>
       <div id="adminErr" class="hidden" style="background:#fde8e8;border:1px solid #f5b5b5;color:#b91c1c;padding:.8rem 1rem;border-radius:10px;font-weight:600"></div>
+      <div id="lockNote" class="hidden" style="background:#fff7e6;border:1px solid var(--gold);border-radius:10px;padding:.9rem 1rem;color:#8a6d1a">
+        <b>⏳ Security lock active.</b> <span id="lockMin" class="small"></span>
+        <button class="btn btn-gold btn-block mt1" type="button" id="unlockBtn">🔓 Locked out? Unlock now with a WhatsApp code</button>
+        <p class="small mt1" style="color:#8a6d1a">Unlock needs <b>your admin password</b> plus a <b>fresh 6-digit code</b> sent to WhatsApp +263 77 482 7123 — only you can do this.</p>
+      </div>
       <div id="codeStep" class="hidden" style="border:1px solid var(--gold);border-radius:12px;padding:1rem;background:#fffdf4">
         <b style="color:#8a6d1a">2 · WhatsApp Verification</b>
         <p class="small" id="codeMsg" style="color:#374151"></p>

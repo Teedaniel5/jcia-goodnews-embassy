@@ -167,14 +167,16 @@
      Login = password + 6-digit WhatsApp code. 3 wrong attempts = 1-hour lock.
      Changing password bumps the session epoch, killing every other admin session. */
   const ADMIN_EMAILS = ["teedanielbrilliant@gmail.com", "audreybrilliant@gmail.com"];
-  const K_LOCK = "jcia_admin_lock", K_ATT = "jcia_admin_attempts", K_EPOCH = "jcia_admin_epoch", K_2FA = "jcia_admin_2fa", K_SETUP = "jcia_admin_setup";
+  const K_LOCK = "jcia_admin_lock", K_ATT = "jcia_admin_attempts", K_EPOCH = "jcia_admin_epoch", K_2FA = "jcia_admin_2fa", K_SETUP = "jcia_admin_setup", K_UNLOCK = "jcia_admin_unlock";
   const epoch = () => read(K_EPOCH, 0);
   function bumpEpoch() { localStorage.setItem(K_EPOCH, String(epoch() + 1)); }
   function lockRemaining() { const t = read(K_LOCK, 0); return t > Date.now() ? Math.ceil((t - Date.now()) / 6e4) : 0; }
   const lockedNow = () => lockRemaining() > 0;
   function countFail() {
-    const n = (read(K_ATT, 0) || 0) + 1; write(K_ATT, n);
-    if (n >= 3) { localStorage.setItem(K_LOCK, JSON.stringify(Date.now() + 36e5)); write(K_ATT, 0); }
+    const prev = read(K_ATT, null);
+    const carry = prev && typeof prev === "object" && (prev.n || 0) > 0 && (Date.now() - (prev.at || 0) < 6e5) ? prev.n : 0;
+    const n = carry + 1; write(K_ATT, { n, at: Date.now() });
+    if (n >= 3) { localStorage.setItem(K_LOCK, JSON.stringify(Date.now() + 36e5)); resetFails(); }
     return n;
   }
   const resetFails = () => localStorage.removeItem(K_ATT);
@@ -286,6 +288,28 @@
       });
       adopt(id);
     } catch (e) { /* fire-and-forget: login already succeeded, syncing can be retried */ }
+  }
+  /* locked-out recovery: correct password + a FRESH WhatsApp code clears the lock.
+     Attempts are still rate-limited (3 wrong passwords re-locks the hour), so this
+     adds a way back in without weakening the 3-strike protection. */
+  function adminUnlockStart(email, password) {
+    if (!adminExists()) return { error: "Admin is not set up yet. Use First-Time Admin Setup below." };
+    if (!isFounder(email)) return { error: "Not authorized. Only approved admins may enter." };
+    const m = members().find(x => x.adminRole && x.status !== "blocked" && (x.email || "").toLowerCase() === String(email || "").toLowerCase());
+    if (!m || m.passwordHash !== hash(password || "")) { const n = countFail(); return { error: n >= 3 && lockedNow() ? "Wrong credentials. You are locked for 1 more hour." : "Wrong email or password (attempt " + n + " of 3)." }; }
+    const code = newCode();
+    write(K_UNLOCK, { memberId: m.id, code, expires: Date.now() + 6e5 });
+    return { stage: "code", waLink: waLinkFor(code, "UNLOCK"), name: m.name, message: "6-digit unlock code sent. Confirm it on WhatsApp +263 77 482 7123, then enter it below." };
+  }
+  function adminUnlockVerify(email, code) {
+    const u = read(K_UNLOCK, null);
+    if (!u || Date.now() > u.expires) return { error: "Unlock code expired — request a new one." };
+    if (String(code || "").trim() !== u.code) { const n = countFail(); return { error: n >= 3 && lockedNow() ? "Wrong code. You are locked for 1 more hour." : "Wrong unlock code (attempt " + n + " of 3)." }; }
+    localStorage.removeItem(K_UNLOCK); localStorage.removeItem(K_LOCK); resetFails(); bumpEpoch();
+    write("jcia_admin_session", { v: 2, epoch: epoch(), memberId: u.memberId, at: Date.now() });
+    ensureAdminCentralProfile(email, u.memberId);
+    const m = members().find(x => x.id === u.memberId);
+    return { ok: true, role: m ? (m.adminRole || "Super Admin") : "Super Admin" };
   }
   function changeAdminPassword(oldPw, newPw) {
     const me = adminSession(); if (!me) return { error: "Not logged in as admin." };
@@ -408,5 +432,5 @@
   }
   document.addEventListener("DOMContentLoaded", paintContent);
 
-  w.JCIA_DB = { CLASSES, VIS_OPTIONS, content, setContent, members, signup, login, logout, session, updateMember, setClass, memberRank, adminLogin, adminVerify, adminSetupStart, adminSetupVerify, adminExists, changeAdminPassword, revokeAllAdminSessions, lockRemaining, adminSession, adminLogout, adminCan, canView, visLabel, notify, exportCSV, exportBackup, compressImage, findByEmail, findByWhatsApp, whatsappChallenge, whatsappVerify, upsertGoogleMember, pwHash: hash };
+  w.JCIA_DB = { CLASSES, VIS_OPTIONS, content, setContent, members, signup, login, logout, session, updateMember, setClass, memberRank, adminLogin, adminUnlockStart, adminUnlockVerify, adminVerify, adminSetupStart, adminSetupVerify, adminExists, changeAdminPassword, revokeAllAdminSessions, lockRemaining, adminSession, adminLogout, adminCan, canView, visLabel, notify, exportCSV, exportBackup, compressImage, findByEmail, findByWhatsApp, whatsappChallenge, whatsappVerify, upsertGoogleMember, pwHash: hash };
 })(window);

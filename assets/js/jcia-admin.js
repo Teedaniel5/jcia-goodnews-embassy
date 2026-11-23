@@ -652,7 +652,27 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     if (!$("#panel")) return;
-    const showErr = (msg) => { const er = $("#adminErr"); er.textContent = "⛔ " + msg; er.classList.remove("hidden"); };
+    const showErr = (msg) => { const er = $("#adminErr"); er.textContent = "⛔ " + msg; er.classList.remove("hidden"); refreshLock(); };
+    function refreshLock() {
+      const note = $("#lockNote"); if (!note) return;
+      const mins = D().lockRemaining();
+      if (mins > 0) { note.classList.remove("hidden"); const lm = $("#lockMin"); if (lm) lm.textContent = "You can log in again in about " + mins + " minute(s) — or unlock right now with a fresh WhatsApp code below."; }
+      else note.classList.add("hidden");
+    }
+    refreshLock();
+    setInterval(refreshLock, 30000);
+    const ub = $("#unlockBtn");
+    if (ub) ub.onclick = () => {
+      const em = (prompt("Admin email (approved founder):") || "").trim();
+      if (!em) return;
+      const pw = prompt("Admin password:", "") || "";
+      if (!pw) return;
+      const r = D().adminUnlockStart(em, pw);
+      if (r.error) { showErr(r.error); return; }
+      $("#adminErr").classList.add("hidden");
+      pending = { mode: "unlock", email: em };
+      showStep(r.message || "", r.waLink);
+    };
     const sess = D().adminSession();
     if (sess) enter(sess.adminRole);
     let pending = null;
@@ -687,7 +707,10 @@
       const code = $("#codeIn").value.trim();
       vb.disabled = true;
       try {
-        const r = pending.mode === "setup" ? await D().adminSetupVerify(pending.email, pending.password, code) : D().adminVerify(pending.email, code);
+        let r;
+        if (pending.mode === "setup") r = await D().adminSetupVerify(pending.email, pending.password, code);
+        else if (pending.mode === "unlock") r = D().adminUnlockVerify(pending.email, code);
+        else r = D().adminVerify(pending.email, code);
         if (r.error) { showErr(r.error); return; }
         $("#codeStep").classList.add("hidden");
         enter(r.role);
