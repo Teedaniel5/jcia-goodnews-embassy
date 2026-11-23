@@ -25,7 +25,15 @@ Live: https://jcia-goodnews-embassy.vercel.app · WhatsApp **+263 77 482 7123** 
 
 ## Admin dashboard (`admin.html`) — role gated
 
-**Bootstrap:** first login with `teedanielbrilliant@gmail.com` or `audreybrilliant@gmail.com` (any password ≥ 4 chars the first time) creates the Super Admin. Other members can be assigned roles viaMembers ▸ 🛡 Role. Roles and their tabs:
+**Admin login is LOCKED — no bootstrap by email.**
+
+1. **First-Time Admin Setup (once):** open `admin.html` — since no admin exists, you are asked for an approved founder email (`teedanielbrilliant@gmail.com` / `audreybrilliant@gmail.com`) and a **real password (min 8)**, then the site hands you a **6-digit code via WhatsApp +263 77 482 7123** (wa.me deep link — confirm on the Apostle's phone) to enter. Setup then disappears permanently; nobody else can create Super Admin.
+2. **Every later login:** password **+** a fresh 6-digit WhatsApp code.
+3. **3 wrong attempts = 1-hour lock.**
+4. **Change Admin Password** (sidebar) edits the password and **logs out all other admin sessions**; "🛑 Log out ALL admin sessions" invalidates every session instantly (session-epoch mechanism).
+5. Blocked/removed admins cannot use existing sessions; blocked members are logged out too.
+
+Other members can be assigned roles viaMembers ▸ 🛡 Role. Roles and their tabs:
 
 | Role | Sees |
 |---|---|
@@ -46,12 +54,33 @@ Panels: 🔴 Go Live (isLive + YouTube ID + Facebook URL + Facebook/YouTube/Inst
 
 Floating gold JCIA-logo button on every page. Answers from a built-in ministry knowledge base (vision, mission, times, joining, giving, partnership, courses, prayer, directions…) and uses **Gemini** when a key is set: Admin ▸ 🤖 JCIA Assistant ▸ paste key (or `localStorage.jcia_gemini_key`). It recommends courses by member level, collects prayer requests & testimonies to the admin, and follows the personality/forbidden-topics set by admin. At production, proxy the Gemini call through a serverless function so the key is never in the browser.
 
+## Connect Firebase — FREE Spark plan, step by step
+
+1. **Create the project** — go to [console.firebase.google.com](https://console.firebase.google.com) → **Add project** → name it (e.g. `jcia-goodnews-embassy`) → continue → **Create**. (Everything below fits the free Spark plan: Auth email/password ~50k MAU, Firestore 1 GiB, Storage 5 GB.)
+2. **Register the web app** — click the **Web icon (`</>`)** → nickname `JCIA Site` → **Register app**. Firebase shows a `firebaseConfig` block: copy **apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId**.
+3. **Paste the keys** — open the site → **Admin** (locked login) → **✏️ Edit Site** → **🔥 Firebase** → paste each value → **💾 Save & Connect** → status shows *Connected*. (Values are stored in the browser, not in the code.)
+4. **Turn on what you need** (all free): **Authentication → Sign-in method → Email/Password + Google**; **Firestore Database → Create database**; **Storage → Get started**.
+5. **Authorize your domain** — Authentication → Settings → Authorized domains → add `jcia-goodnews-embassy.vercel.app` (this makes Google login work on the live site).
+6. **Recommended Firestore rules** (starter, tighten for production):
+```js
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /members/{docId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+  }
+}
+```
+
 ## Production wiring (demo → real)
 
 The demo stores data in `localStorage` (single browser) and simulates uploads/payments so **nothing is faked as live when it isn't**. Contained swap points, all behind `assets/js/jcia-db.js`:
 
-- **Auth & database** — Firebase Auth (Google provider is already button-ready) + Firestore; replace the `J.*` methods (members, session, content). Use auth custom claims for `adminRole` and *deny rules* on `memberClass`.
-- **Security (Partner files)** — partner-gated items are already hidden from shop, library and download counts; download links for partner-visibility products redirect to `partners.html`. At production, never ship public URLs: store files in Firebase Storage / Cloudinary with **signed, expiring URLs generated from a server after a server-side class check**.
+- **Auth & database** — paste the Firebase config in **Admin ▸ Edit Site ▸ Firebase ▸ Save & Connect** (step-by-step guide is embedded right there). `assets/js/jcia-firebase.js` loads the SDK on demand and gives you **real Firebase Auth**: email+password signup/login, Google sign-in, password-reset emails, Firestore member records (`saveDoc('members', jcia-id, …)`) and **Storage uploads with progress** (products land in `products/<id>_<filename>` and get a download URL). Replace the `J.*` methods (members, session, content) with Firestore reads to move the whole data layer server-side.
+- **Security (Admin & Partner files)** — the demo admin lock (password + WhatsApp code + lockout) runs client-side. After connecting Firebase, create the admin accounts in Firebase Auth, add **Firestore/Storage security rules** and an `admin: true` custom claim, then verify the claim server-side before showing admin data and before issuing download links. Partner-visibility items are already hidden from shop, library and download counts and partner download links redirect to `partners.html`; at production, store files in Firebase Storage and serve **signed, expiring URLs generated only after a server-side class check**.
 - **Payments** — insert hosted payment links / a checkout endpoint in `checkout.html` + `give.html`; call the existing `grant`/receipt hooks after server-side confirmation. Bank Transfer + proofs work end-to-end in demo.
 - **Uploads (500MB)** — the admin uploader validates size and shows progress; connect Firebase Storage / Cloudinary resumable uploads at the marked spot.
 - **Receipts & notifications** — EmailJS / Firebase Functions email + WhatsApp Cloud API at the `D.notify` and wa.me deep links' call points.
@@ -72,4 +101,4 @@ Deployed by Vercel automatically from `main`.
 - Giving details (EcoCash, Bank, Paynow, Mukuru, PayPal) → Admin ▸ Edit Site ▸ Giving
 - Gemini API key → Admin ▸ JCIA Assistant
 - Real photo of President Audrey Brilliant (an emblem is shown meanwhile)
-- Bootstrap Super Admin password, then set strong passwords for all admin accounts
+- First-Time Admin Setup (once) with a strong password (min 8) — then admin login is password + WhatsApp 6-digit code everywhere

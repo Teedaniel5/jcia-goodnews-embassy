@@ -114,27 +114,50 @@
   document.getElementById('suPhoto').addEventListener('change',function(){
     if(this.files[0])D.compressImage(this.files[0],320,function(d){photoData=d;});
   });
-  document.getElementById('signupForm').addEventListener('submit',function(e){
+  document.getElementById('signupForm').addEventListener('submit',async function(e){
     e.preventDefault();
     var o=Object.fromEntries(new FormData(e.target).entries());o.photo=photoData;
-    var r=D.signup(o);
     var ok=document.getElementById('signupOk');
     ok.classList.remove('hidden');
-    if(r.error){ok.style.background='#fde8e8';ok.style.border='1px solid #f5b5b5';ok.style.color='#b91c1c';ok.textContent='⚠ '+r.error;return;}
+    var useFB = window.JCIA_FB && JCIA_FB.ready();
+    if(useFB){
+      try{ await JCIA_FB.authSignup(o); }catch(e2){
+        ok.style.background='#fde8e8';ok.style.border='1px solid #f5b5b5';ok.style.color='#b91c1c';
+        ok.textContent='⚠ '+(JCIA_FB.ERROR_TEXT?JCIA_FB.ERROR_TEXT(e2):e2.message);return;
+      }
+    }
+    var r=D.signup(o);
+    if(r.error){ok.style.background='#fde8e8';ok.style.border='1px solid #f5b5b5';ok.style.color='#b91c1c';
+      ok.textContent='⚠ '+r.error;return;}
+    if(useFB){try{ await JCIA_FB.saveDoc('members',r.member.id,{name:r.member.name,email:r.member.email,whatsapp:r.member.whatsapp,country:r.member.country,city:r.member.city,gender:r.member.gender,dob:r.member.dob,photo:r.member.photo,memberClass:r.member.memberClass,joined:r.member.joined}); }catch(e3){}}
     ok.style.background='';ok.style.border='';ok.style.color='';
-    ok.innerHTML='🎉 Welcome, '+r.member.name+'! Your Member ID is <b>'+r.member.id+'</b> — Class: General Congregation Member. Opening your Dashboard…';
+    ok.innerHTML='🎉 Welcome, '+r.member.name+'! Your Member ID is <b>'+r.member.id+'</b> — Class: General Congregation Member'+(useFB?' via Firebase Auth':'')+'. Opening your Dashboard…';
     setTimeout(function(){location.href='dashboard.html';},1800);
   });
-  document.getElementById('loginForm').addEventListener('submit',function(e){
+  document.getElementById('loginForm').addEventListener('submit',async function(e){
     e.preventDefault();
     var o=Object.fromEntries(new FormData(e.target).entries());
-    var r=D.login(o.email,o.password);
     var err=document.getElementById('loginErr');
+    if(window.JCIA_FB && JCIA_FB.ready()){
+      try{ await JCIA_FB.authLogin(o.email,o.password); }
+      catch(e2){ err.classList.remove('hidden'); err.textContent=(JCIA_FB.ERROR_TEXT?JCIA_FB.ERROR_TEXT(e2):e2.message); return; }
+    }
+    var r=D.login(o.email,o.password);
     if(r.error){err.classList.remove('hidden');err.textContent=r.error;return;}
     location.href='dashboard.html';
   });
-  ['googleBtn','googleBtn2'].forEach(function(id){var b=document.getElementById(id);if(b)b.addEventListener('click',function(){
-    alert('Google Login: connect Firebase Auth (see README “Logins”). Email and WhatsApp login already work fully.');
+  ['googleBtn','googleBtn2'].forEach(function(id){var b=document.getElementById(id);if(b)b.addEventListener('click',async function(){
+    if(!(window.JCIA_FB && JCIA_FB.ready())){
+      alert('Google Login activates with Firebase (free): Admin ▸ Edit Site ▸ Firebase — the step-by-step guide is right there. Email and WhatsApp login work already.');
+      return;
+    }
+    try{
+      var u=await JCIA_FB.authGoogle();
+      var r=D.upsertGoogleMember({displayName:u.displayName,email:u.email,photoURL:u.photoURL,uid:u.uid,phoneNumber:u.phoneNumber});
+      if(r.error){alert(r.error);return;}
+      JCIA_FB.saveDoc('members',r.member.id,{name:r.member.name,email:r.member.email,photo:r.member.photo,provider:'google',joined:r.member.joined}).catch(function(){});
+      location.href='dashboard.html';
+    }catch(e2){ alert('Google sign-in: '+(JCIA_FB.ERROR_TEXT?JCIA_FB.ERROR_TEXT(e2):e2.message)); }
   });});
   document.getElementById('waSend').addEventListener('click',function(){
     var wa=document.querySelector('#waForm [name=wa]').value;
@@ -222,6 +245,7 @@
 </footer>
 <script src="assets/js/main.js"></script>
 <script src="assets/js/jcia-db.js"></script>
+<script src="assets/js/jcia-firebase.js"></script>
 <script src="assets/js/store.js"></script>
 <script src="assets/js/jcia-assistant.js"></script>
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateInit" defer></script>

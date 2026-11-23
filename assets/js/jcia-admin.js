@@ -177,7 +177,7 @@
         if (p >= 100) { clearInterval(iv); $("#upStatus").innerHTML = "✅ " + f.name + " picked for upload (" + (f.size / 1048576).toFixed(1) + " MB)"; } }, 120);
     }
     $("#coverIn").onchange = function () { const f = this.files[0]; if (f) D().compressImage(f, 800, (d) => { coverData = d; $("#coverPrev").innerHTML = `<img src="${d}" alt="" style="max-width:200px;border-radius:12px">`; }); };
-    $("#upForm").onsubmit = (e) => {
+    $("#upForm").onsubmit = async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
       const o = {
@@ -186,7 +186,18 @@
         visibility: fd.get("visibility"), icon: "📦", cover: coverData, downloads: 0,
         imgPos: fd.get("imgPos"), imgSize: fd.get("imgSize"), imgFrame: fd.get("imgFrame") === "1"
       };
-      if (pickedFile) { o.fileName = pickedFile.name; o.fileSize = pickedFile.size; }
+      if (pickedFile) {
+        o.fileName = pickedFile.name; o.fileSize = pickedFile.size;
+        if (window.JCIA_FB && JCIA_FB.ready()) {
+          $("#upStatus").textContent = "Uploading to Firebase Storage…";
+          try {
+            const up = await JCIA_FB.upload(pickedFile, "products/" + o.id + "_" + pickedFile.name, (p) => { $("#upProg").style.width = Math.round(p * 100) + "%"; });
+            o.file = up.url; o.storagePath = up.path;
+            $("#upStatus").textContent = "✅ Uploaded to Firebase Storage";
+          } catch (err) { $("#upStatus").textContent = "⚠️ Storage upload failed (" + (err && err.message ? err.message : err) + ") — published in demo mode instead."; }
+        }
+      }
+      if (window.JCIA_FB && JCIA_FB.ready()) { try { await JCIA_FB.saveDoc("products", o.id, { title: o.title, desc: o.desc, price: o.price, cat: o.cat, visibility: o.visibility }); } catch (e2) { } }
       const c = D().content(); c.products = [o].concat(c.products || []); D().setContent({ products: c.products });
       toast("✅ Published: " + o.title);
       PANES.content();
@@ -243,7 +254,34 @@
         ${F("gEco", "EcoCash Number", g.ecocash)}${F("gBank", "Bank Name", g.bank)}${F("gAcc", "Bank Account", g.bankAccount)}
         ${F("gPay", "Paynow Details", g.paynow)}${F("gMuk", "Mukuru Details", g.mukuru)}${F("gPp", "PayPal Email", g.paypal)}
       </div><button class="btn btn-gold mt1" id="saveGiving">💾 Save Giving Details</button></div>
-      <div class="card mt1"><h3>🎓 Academy Starter Product Prices (USD)</h3>${starterPriceRows(c)}</div>`;
+      <div class="card mt1"><h3>🎓 Academy Starter Product Prices (USD)</h3>${starterPriceRows(c)}</div>
+      <div class="card mt1"><h3>🔥 Firebase (FREE Spark Plan — real accounts, database, storage)</h3>
+        <p class="small muted">Paste your Firebase web app config. Until then the site runs the locked demo mode on this browser.</p>
+        <div id="fbStatus" class="class-badge cb-general" style="display:inline-block">checking…</div>
+        <div style="display:flex;flex-wrap:wrap;gap:.6rem" class="mt1">
+          ${F("fbKey", "apiKey", (window.JCIA_FB && JCIA_FB.cfg() && JCIA_FB.cfg().apiKey) || "")}
+          ${F("fbDomain", "authDomain", (window.JCIA_FB && JCIA_FB.cfg() && JCIA_FB.cfg().authDomain) || "")}
+          ${F("fbProj", "projectId", (window.JCIA_FB && JCIA_FB.cfg() && JCIA_FB.cfg().projectId) || "")}
+          ${F("fbBucket", "storageBucket", (window.JCIA_FB && JCIA_FB.cfg() && JCIA_FB.cfg().storageBucket) || "")}
+          ${F("fbSender", "messagingSenderId", (window.JCIA_FB && JCIA_FB.cfg() && JCIA_FB.cfg().messagingSenderId) || "")}
+          ${F("fbApp", "appId", (window.JCIA_FB && JCIA_FB.cfg() && JCIA_FB.cfg().appId) || "")}
+        </div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap" class="mt1">
+          <button class="btn btn-gold" id="fbSave">💾 Save &amp; Connect</button>
+          <button class="btn btn-outline" id="fbTest">🔌 Test Connection</button>
+          <button class="btn btn-outline" id="fbClear" style="border-color:#dc2626;color:#b91c1c">Disconnect</button>
+        </div>
+        <details class="acc mt1"><summary>📖 How to connect Firebase — step by step (free)</summary><div class="acc-body">
+          <ol style="text-align:left;padding-left:1.2rem">
+            <li>Go to <b>console.firebase.google.com</b> → <b>Add project</b> → name it (e.g. <i>jcia-goodnews-embassy</i>) → continue (Analytics optional) → Create.</li>
+            <li>Click the <b>Web icon (&lt;/&gt;)</b> to add a web app → nickname it → <b>Register app</b>.</li>
+            <li>Copy the shown <b>firebaseConfig</b> values (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId).</li>
+            <li>Paste each value above → <b>Save &amp; Connect</b>. Status turns green when connected.</li>
+            <li>Enable what you need (generous free tiers): <b>Authentication</b> → Sign-in method → enable <b>Email/Password</b> and <b>Google</b>; <b>Firestore Database</b> → Create database; <b>Storage</b> → Get started.</li>
+            <li>Authentication → Settings → <b>Authorized domains</b> → add <b>jcia-goodnews-embassy.vercel.app</b>.</li>
+          </ol>
+        </div></details>
+      </div>`;
     $("#saveCore").onclick = () => {
       D().setContent({ heroTitle: $("#sHeroT").value.trim(), heroSub: $("#sHeroS").value.trim(), vision: $("#sVision").value.trim(), mission: $("#sMission").value.trim(), apostleBio: $("#sBio").value.trim(), serviceTimes: $("#sTimes").value.trim(), contactEmail: $("#sEmail").value.trim(), contactWhatsApp: $("#sWaD").value.trim(), whatsapp: $("#sWa").value.trim().replace(/\D/g, "") }, "site");
       toast("✅ Site text saved");
@@ -256,6 +294,16 @@
       D().setContent({ ecocash: $("#gEco").value.trim(), bank: $("#gBank").value.trim(), bankAccount: $("#gAcc").value.trim(), paynow: $("#gPay").value.trim(), mukuru: $("#gMuk").value.trim(), paypal: $("#gPp").value.trim() }, "giving");
       toast("✅ Giving details saved");
     };
+    const fbSt = $("#fbStatus");
+    if (fbSt && window.JCIA_FB) {
+      const paintFb = (s) => {
+        fbSt.textContent = s === "connected" ? "🔥 Connected — real Firebase Auth + Firestore + Storage" : (String(s).indexOf("error") === 0 ? "⛔ " + s : (s === "not-configured" ? "Not configured — demo mode" : s));
+      };
+      JCIA_FB.onStatus(paintFb); paintFb(window.JCIA_FB_STATUS || "not-configured");
+      $("#fbSave").onclick = () => JCIA_FB.saveConfig({ apiKey: $("#fbKey").value, authDomain: $("#fbDomain").value, projectId: $("#fbProj").value, storageBucket: $("#fbBucket").value, messagingSenderId: $("#fbSender").value, appId: $("#fbApp").value }).then(() => toast("🔥 Firebase config saved — connecting…"));
+      $("#fbTest").onclick = async () => { await JCIA_FB.activate(); paintFb(window.JCIA_FB_STATUS || "not-configured"); toast("Firebase: " + (window.JCIA_FB_STATUS || "?")); };
+      $("#fbClear").onclick = () => { if (!confirm("Disconnect Firebase from this site?")) return; JCIA_FB.clearConfig(); paintFb("not-configured"); toast("Disconnected — demo mode"); };
+    }
     $$("[data-saveprice]").forEach(b => b.onclick = () => {
       const id = b.dataset.saveprice, v = Number(document.querySelector('[data-price="' + id + '"]').value || 0);
       write("jcia_products", read("jcia_products", []).map(x => x.id === id ? Object.assign({}, x, { price: v }) : x));
@@ -500,16 +548,53 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     if (!$("#panel")) return;
+    const showErr = (msg) => { const er = $("#adminErr"); er.textContent = "⛔ " + msg; er.classList.remove("hidden"); };
     const sess = D().adminSession();
     if (sess) enter(sess.adminRole);
+    let pending = null;
+    if (!D().adminExists()) { const n = $("#setupNote"); if (n) n.classList.remove("hidden"); const l = $("#pwLabel"); if (l) l.textContent = "Set your real admin password (min 8)"; const s = $("#pwStepBtn"); if (s) s.textContent = "1 · Send setup code to WhatsApp →"; }
     const lf = $("#adminLoginForm");
     if (lf) lf.onsubmit = (e) => {
       e.preventDefault();
       const fd = new FormData(lf);
-      const r = D().adminLogin(fd.get("email"), fd.get("password"));
-      if (r.error) { const er = $("#adminErr"); er.textContent = "⛔ " + r.error; er.classList.remove("hidden"); return; }
+      const email = fd.get("email"), password = fd.get("password");
+      let r;
+      if (!D().adminExists()) {
+        r = D().adminSetupStart(email, password);
+        if (r.error) { showErr(r.error); return; }
+        pending = { mode: "setup", email, password };
+      } else {
+        r = D().adminLogin(email, password);
+        if (r.error) { showErr(r.error); return; }
+        pending = { mode: "login", email };
+      }
+      $("#adminErr").classList.add("hidden");
+      document.getElementById("pwStepBtn").disabled = true;
+      showStep(r.message || "", r.waLink);
+    };
+    function showStep(msg, waLink) {
+      const st = $("#codeStep"); st.classList.remove("hidden");
+      $("#codeMsg").textContent = msg || "";
+      const a = $("#waCodeLink"); a.href = waLink;
+    }
+    const vb = $("#verifyBtn");
+    if (vb) vb.onclick = () => {
+      if (!pending) { showErr("Verify your password first."); return; }
+      const code = $("#codeIn").value.trim();
+      const r = pending.mode === "setup" ? D().adminSetupVerify(pending.email, pending.password, code) : D().adminVerify(pending.email, code);
+      if (r.error) { showErr(r.error); return; }
+      $("#codeStep").classList.add("hidden");
       enter(r.role);
     };
+    const cpSave = $("#cpSave");
+    if (cpSave) cpSave.onclick = () => {
+      const r = D().changeAdminPassword($("#cpOld").value, $("#cpNew").value);
+      const m = $("#cpMsg");
+      if (r.error) { m.textContent = "⛔ " + r.error; return; }
+      m.textContent = "✅ Password changed. All other admin sessions are logged out. You stay signed in.";
+    };
+    const revokeBtn = $("#revokeBtn");
+    if (revokeBtn) revokeBtn.onclick = () => { D().revokeAllAdminSessions(); D().adminLogout(); window.location.reload(); };
     const lb = $("#adminLogoutB");
     if (lb) lb.onclick = () => { D().adminLogout(); window.location.reload(); };
     if (sess && window.location.hash && PANES[window.location.hash.slice(1)]) { TAB = window.location.hash.slice(1); render(); }
