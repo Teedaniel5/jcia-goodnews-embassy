@@ -63,22 +63,25 @@
     return { added, updated, total: (docs || []).length };
   }
   function fbSyncMembers(force) {
-    if (!fbReady()) { fbSyncMsg = ""; return; }
+    if (!fbReady()) {
+      if (fbSyncAt && Date.now() - fbSyncAt < 10000) return;
+      fbSyncAt = Date.now();
+      if (window.JCIA_FB && JCIA_FB.ensureReady) {
+        JCIA_FB.ensureReady().then((ok) => {
+          if (ok) { fbSyncAt = 0; fbSyncMembers(true); }
+          else { fbSyncMsg = "⚠ Central membership service is not connected. Member list may be incomplete."; render(); }
+        }).catch((e) => { fbSyncMsg = "⚠ Firebase connection failed: " + ((e && e.message) || e); render(); });
+      }
+      return;
+    }
     if (!force && Date.now() - fbSyncAt < 30000) return;
     fbSyncAt = Date.now();
     JCIA_FB.listDocs("members").then((docs) => {
       const r = mergeFBMembers(docs);
-      const have = docs || [];
-      let up = 0;
-      read(MKEY, []).forEach((m) => {
-        if (!m.email) return;
-        const exists = have.some(d => d.id === m.id || String(d.email || "").toLowerCase() === String(m.email).toLowerCase());
-        if (!exists) { up++; fbMirror(m.id, { name: m.name, email: m.email, whatsapp: m.whatsapp, country: m.country, city: m.city, memberClass: m.memberClass, level: m.level, status: m.status, joined: m.joined, adminRole: m.adminRole || "" }); }
-      });
-      fbSyncMsg = "\ud83d\udd25 Firebase connected \u2014 " + r.total + " member" + (r.total === 1 ? "" : "s") + " worldwide loaded" + (r.added ? " (" + r.added + " new)" : "") + (up ? " \u00b7 " + up + " local member" + (up === 1 ? "" : "s") + " uploaded to Firebase" : "");
+      fbSyncMsg = "Firebase connected — " + r.total + " central member" + (r.total === 1 ? "" : "s") + " loaded" + (r.added ? " (" + r.added + " new on this device)" : "");
       render();
     }).catch((e) => {
-      fbSyncMsg = "\u26a0 Firebase members sync failed: " + ((e && e.message) || e);
+      fbSyncMsg = "⚠ Firebase members sync failed: " + ((e && e.message) || e);
       render();
     });
   }
