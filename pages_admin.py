@@ -17,6 +17,25 @@ def build_admin():
       <div class="field"><label id="pwLabel">Admin Password</label><input type="password" name="password" required minlength="8" placeholder="Your real admin password (min 8)"></div>
       <button class="btn btn-gold btn-block" type="submit" id="pwStepBtn">Enter Admin →</button>
       <div id="adminErr" class="hidden" style="background:#fde8e8;border:1px solid #f5b5b5;color:#b91c1c;padding:.8rem 1rem;border-radius:10px;font-weight:600"></div>
+    </form>
+    <p class="small mt1 center"><a href="#" id="forgotLink" style="color:#8a6d1a;font-weight:700">Forgot your password?</a></p>
+    <div id="resetStep" class="hidden mt1" style="border:1px solid var(--gold);border-radius:12px;padding:1rem;background:#fffdf4;text-align:left">
+      <b style="color:#8a6d1a">Reset your admin password</b>
+      <p class="small" id="resetMsg" style="color:#374151"></p>
+      <ol class="small" style="color:#374151;margin:.3rem 0 .6rem 1.1rem;padding:0">
+        <li>Tap the green <b>Open WhatsApp</b> button below.</li>
+        <li>WhatsApp opens with a code message <b>already typed for you</b> — press <b>SEND</b> inside WhatsApp.</li>
+        <li>Read the 6-digit code from that message, type it below with your new password. Valid 10 minutes.</li>
+      </ol>
+      <a class="btn btn-wa btn-sm" id="resetWaLink" target="_blank" rel="noopener">💬 Open WhatsApp — your code is in the message</a>
+      <div class="field mt1"><label>6-digit reset code</label><input id="resetCodeIn" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="••••••" style="letter-spacing:.4em;font-size:1.2rem;text-align:center"></div>
+      <div class="field"><label>New password (min 8 characters)</label><input type="password" id="resetNewPw" minlength="8" placeholder="Your new admin password"></div>
+      <button class="btn btn-gold btn-block" type="button" id="resetSaveBtn">Set New Password &amp; Enter Admin →</button>
+      <details class="small mt1" style="color:#6b7280">
+        <summary>WhatsApp not working on this device?</summary>
+        <p class="small" style="color:#6b7280">Emergency fallback: your code appears here automatically 90 seconds after this step opens — <b id="resetCodeFallback" style="letter-spacing:.3em;font-size:1.1rem;color:#8a6d1a">••••••</b></p>
+      </details>
+    </div>
 
     <p class="form-note">Keep your admin password private — only the approved Founder emails below can ever hold an admin account.</p>
   </div>

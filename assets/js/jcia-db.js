@@ -167,7 +167,7 @@
      Login = password + 6-digit WhatsApp code. 3 wrong attempts = 1-hour lock.
      Changing password bumps the session epoch, killing every other admin session. */
   const ADMIN_EMAILS = ["teedanielbrilliant@gmail.com", "audreybrilliant@gmail.com"];
-  const K_LOCK = "jcia_admin_lock", K_ATT = "jcia_admin_attempts", K_EPOCH = "jcia_admin_epoch", K_2FA = "jcia_admin_2fa", K_SETUP = "jcia_admin_setup", K_UNLOCK = "jcia_admin_unlock";
+  const K_LOCK = "jcia_admin_lock", K_ATT = "jcia_admin_attempts", K_EPOCH = "jcia_admin_epoch", K_2FA = "jcia_admin_2fa", K_SETUP = "jcia_admin_setup", K_UNLOCK = "jcia_admin_unlock", K_RESET = "jcia_admin_reset";
   const epoch = () => read(K_EPOCH, 0);
   function bumpEpoch() { localStorage.setItem(K_EPOCH, String(epoch() + 1)); }
   function lockRemaining() { const t = read(K_LOCK, 0); return t > Date.now() ? Math.ceil((t - Date.now()) / 6e4) : 0; }
@@ -328,6 +328,31 @@
     return m && m.status !== "blocked" ? m : null;
   }
   function adminLogout() { localStorage.removeItem("jcia_admin_session"); }
+  /* forgot password: founder email -> 6-digit code via WhatsApp self-message
+     (with 90-second on-screen fallback) -> set a new password */
+  function adminResetStart(email) {
+    if (!adminExists()) return { error: "No admin account to reset." };
+    if (!isFounder(email)) return { error: "Password reset is reserved for the approved Founder emails only." };
+    const m = members().find(x => x.adminRole && x.status !== "blocked" && (x.email || "").toLowerCase() === String(email || "").toLowerCase());
+    if (!m) return { error: "No admin account with that email. Check the spelling." };
+    const code = newCode();
+    write(K_RESET, { memberId: m.id, email: String(email).toLowerCase(), code, expires: Date.now() + 6e5 });
+    return { ok: true, waLink: waLinkFor(code, "RESET"), message: "6-digit reset code ready. It is valid 10 minutes." };
+  }
+  function adminResetVerify(email, code, newPw) {
+    const s = read(K_RESET, null);
+    if (!s || Date.now() > s.expires) return { error: "Reset code expired \u2014 request a new one." };
+    if (String(email || "").toLowerCase() !== s.email) return { error: "Use the same founder email you started the reset with." };
+    if (String(code || "").trim() !== s.code) return { error: "Wrong reset code \u2014 request a new one." };
+    if (!newPw || newPw.length < 8) return { error: "New password must be at least 8 characters." };
+    localStorage.removeItem(K_RESET);
+    updateMember(s.memberId, { passwordHash: hash(newPw) });
+    resetFails(); bumpEpoch();
+    write("jcia_admin_session", { v: 2, epoch: epoch(), memberId: s.memberId, at: Date.now() });
+    ensureAdminCentralProfile(email, s.memberId);
+    const m = members().find(x => x.id === s.memberId);
+    return { ok: true, role: m ? (m.adminRole || "Super Admin") : "Super Admin", name: m ? m.name : "Admin" };
+  }
   const ROLE_TABS = {
     "Super Admin": "*", "Media Admin": ["golive", "content", "site", "notify", "assistant"],
     "Finance Admin": ["sales", "giving"], "Membership Admin": ["members", "testimonies", "prayers"],
@@ -430,5 +455,5 @@
   }
   document.addEventListener("DOMContentLoaded", paintContent);
 
-  w.JCIA_DB = { CLASSES, VIS_OPTIONS, content, setContent, members, signup, login, logout, session, updateMember, setClass, memberRank, adminLogin, adminUnlockStart, adminUnlockVerify, adminVerify, adminSetupStart, adminSetupVerify, adminExists, changeAdminPassword, revokeAllAdminSessions, lockRemaining, adminSession, adminLogout, adminCan, canView, visLabel, notify, exportCSV, exportBackup, compressImage, findByEmail, findByWhatsApp, whatsappChallenge, whatsappVerify, upsertGoogleMember, pwHash: hash };
+  w.JCIA_DB = { CLASSES, VIS_OPTIONS, content, setContent, members, signup, login, logout, session, updateMember, setClass, memberRank, adminLogin, adminResetStart, adminResetVerify, adminUnlockStart, adminUnlockVerify, adminVerify, adminSetupStart, adminSetupVerify, adminExists, changeAdminPassword, revokeAllAdminSessions, lockRemaining, adminSession, adminLogout, adminCan, canView, visLabel, notify, exportCSV, exportBackup, compressImage, findByEmail, findByWhatsApp, whatsappChallenge, whatsappVerify, upsertGoogleMember, pwHash: hash };
 })(window);

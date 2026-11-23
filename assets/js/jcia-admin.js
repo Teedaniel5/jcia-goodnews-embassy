@@ -680,6 +680,38 @@
       } catch (e2) { showErr("Login failed: " + ((e2 && e2.message) || e2)); }
       finally { if (btn) { btn.disabled = false; btn.textContent = btnTxt; } }
     };
+    const fl = $("#forgotLink");
+    if (fl) fl.onclick = (e) => {
+      e.preventDefault();
+      const input = lf ? lf.querySelector("[name=email]") : null;
+      let em = ((input && input.value) || "").trim();
+      if (!em) em = (prompt("Admin email (approved founder):") || "").trim();
+      if (!em) return;
+      const r = D().adminResetStart(em);
+      if (r.error) { showErr(r.error); return; }
+      $("#adminErr").classList.add("hidden");
+      $("#resetStep").classList.remove("hidden");
+      $("#resetMsg").textContent = r.message || "";
+      $("#resetWaLink").href = r.waLink;
+      const m = decodeURIComponent(String(r.waLink || "")).match(/code:\s*(\d{6})/);
+      const fb = $("#resetCodeFallback");
+      if (fb) { fb.textContent = "\u2022\u2022\u2022\u2022\u2022\u2022"; clearTimeout(window.__jcResetT); window.__jcResetT = setTimeout(() => { fb.textContent = (m && m[1]) || "\u2014"; }, 90000); }
+      $("#resetCodeIn").focus();
+    };
+    const rb = $("#resetSaveBtn");
+    if (rb) rb.onclick = async () => {
+      const input = lf ? lf.querySelector("[name=email]") : null;
+      const em = ((input && input.value) || "").trim();
+      rb.disabled = true;
+      try {
+        const r = D().adminResetVerify(em, $("#resetCodeIn").value.trim(), $("#resetNewPw").value);
+        if (r.error) { showErr(r.error); return; }
+        $("#resetStep").classList.add("hidden");
+        $("#adminErr").classList.add("hidden");
+        enter(r.role);
+      } catch (e2) { showErr("Reset failed: " + ((e2 && e2.message) || e2)); }
+      finally { rb.disabled = false; }
+    };
     const cpSave = $("#cpSave");
     if (cpSave) cpSave.onclick = () => {
       const r = D().changeAdminPassword($("#cpOld").value, $("#cpNew").value);
