@@ -254,8 +254,38 @@
     if (String(code || "").trim() !== s.code) { const n = countFail(); return { error: n >= 3 && lockedNow() ? "Wrong code. You are locked for 1 hour." : "Wrong code (attempt " + n + " of 3)." }; }
     localStorage.removeItem(K_2FA); resetFails(); bumpEpoch();
     write("jcia_admin_session", { v: 2, epoch: epoch(), memberId: s.memberId, at: Date.now() });
+    ensureAdminCentralProfile(email, s.memberId);
     const m = members().find(x => x.id === s.memberId);
     return { ok: true, role: m ? (m.adminRole || "Super Admin") : "Super Admin" };
+  }
+  /* after a successful admin login, make sure the Apostle/President have a central
+     Firestore profile (admins set up before central saving existed cannot re-run setup) */
+  async function ensureAdminCentralProfile(email, localId) {
+    if (!w.JCIA_FB) return;
+    try {
+      if (!(await w.JCIA_FB.ensureReady())) return;
+      const em = String(email || "").toLowerCase();
+      const central = await w.JCIA_FB.listDocs("members");
+      const mine = central.find(x => String(x.email || "").toLowerCase() === em);
+      const adopt = (newId) => {
+        if (!newId || newId === localId) return;
+        const all = members();
+        const idx = all.findIndex(x => x.id === localId);
+        if (idx >= 0) { all[idx].id = newId; saveMembers(all); }
+        const sess = read("jcia_admin_session", null);
+        if (sess && sess.memberId === localId) { sess.memberId = newId; write("jcia_admin_session", sess); }
+      };
+      if (mine) { adopt(mine.id); return; }
+      const m = members().find(x => x.id === localId) || {};
+      const id = await w.JCIA_FB.nextMemberId();
+      if (!id) return;
+      await w.JCIA_FB.saveDoc("members", id, {
+        name: m.name || "", email: em, whatsapp: m.whatsapp || "", country: m.country || "", city: m.city || "",
+        memberClass: m.memberClass || "son", level: m.level || "Chief Son", adminRole: m.adminRole || "Super Admin",
+        status: "active", joined: m.joined || new Date().toISOString()
+      });
+      adopt(id);
+    } catch (e) { /* fire-and-forget: login already succeeded, syncing can be retried */ }
   }
   function changeAdminPassword(oldPw, newPw) {
     const me = adminSession(); if (!me) return { error: "Not logged in as admin." };

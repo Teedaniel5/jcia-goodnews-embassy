@@ -275,7 +275,8 @@ def build_account():
     var btn=e.target.querySelector('[type=submit]');
     if(btn){ btn.disabled=true; btn.textContent='\u23f3 Creating\u2026'; }
     var resetBtn=function(){ if(btn){ btn.disabled=false; btn.textContent='Create My JCIA Account 🚀'; } };
-    var useFB = window.JCIA_FB && JCIA_FB.ready();
+    var useFB = !!(window.JCIA_FB && await JCIA_FB.ensureReady());
+    if(!useFB){ ok.style.background='#fde8e8';ok.style.border='1px solid #f5b5b5';ok.style.color='#b91c1c';ok.textContent='⚠ Registration is temporarily unavailable because the secure membership service is not connected. Please try again shortly.';resetBtn();return; }
     if(useFB){
       try{ await JCIA_FB.authSignup(o); }catch(e2){
         var code=(e2&&e2.code)||'';
@@ -312,7 +313,7 @@ def build_account():
       ok.textContent='\u26a0 '+r.error;
       if(useFB&&(r.error||'').toLowerCase().indexOf('already registered')>=0){ try{ await JCIA_FB.authReset(o.email); ok.textContent='\u26a0 That email already exists. We just emailed you a password-reset link \u2014 or simply Log In with the same details.'; }catch(e4){} }
       resetBtn();return;}
-    if(useFB){try{ await mirrorMember(r.member.id,r.member.email,{name:r.member.name,email:r.member.email,whatsapp:r.member.whatsapp,country:r.member.country,city:r.member.city,gender:r.member.gender,dob:r.member.dob,photo:r.member.photo,memberClass:r.member.memberClass,joined:r.member.joined}); }catch(e3){}}
+    if(useFB){try{ var saved=await mirrorMember(r.member.id,r.member.email,{uid:(window.firebase&&firebase.auth&&firebase.auth().currentUser&&firebase.auth().currentUser.uid)||'',name:r.member.name,email:r.member.email,whatsapp:r.member.whatsapp,country:r.member.country,city:r.member.city,gender:r.member.gender,dob:r.member.dob,photo:r.member.photo,memberClass:r.member.memberClass,level:r.member.level,status:r.member.status,joined:r.member.joined}); if(!saved) throw new Error('Could not save member profile to the central database.'); }catch(e3){ ok.style.background='#fde8e8';ok.style.border='1px solid #f5b5b5';ok.style.color='#b91c1c';ok.textContent='⚠ Your sign-in account was created, but your membership profile could not be saved. Please contact the ministry before trying again.';resetBtn();return;} }
     ok.style.background='';ok.style.border='';ok.style.color='';
     ok.innerHTML='🎉 Welcome, '+r.member.name+'! Your Member ID is <b>'+r.member.id+'</b> \u2014 Class: General Congregation Member'+(useFB?' via Firebase Auth':' (demo mode \u2014 this browser)')+'. Opening your Dashboard\u2026';
     setTimeout(function(){location.href='dashboard.html';},1800);
@@ -325,7 +326,8 @@ def build_account():
     var setBusy=function(b){ if(btn){ btn.disabled=b; btn.textContent=b? '\u23f3 Signing in, please wait\u2026' : 'Log In \u2192'; } };
     setBusy(true);
     var showErr=function(msg){ setBusy(false); err.classList.remove('hidden'); err.innerHTML='\u26d4 '+msg+'<br><span style=\"font-weight:400\">Tip: you can also Log In with your WhatsApp number (3rd tab), or Create Account with the same email to restore your profile.</span>'; };
-    var useFB = window.JCIA_FB && JCIA_FB.ready();
+    var useFB = !!(window.JCIA_FB && await JCIA_FB.ensureReady());
+    if(!useFB){ showErr('The secure membership service is temporarily unavailable. Please try again shortly.'); return; }
     var fbErr='', fbCode='', fbUser=null;
     if(useFB){
       try{ fbUser = await JCIA_FB.authLogin(o.email,o.password); }
@@ -342,10 +344,11 @@ def build_account():
       location.href='dashboard.html'; return;
     }
     if(fbUser){
-      var g=D.upsertGoogleMember({displayName:fbUser.displayName||o.email.split('@')[0],email:o.email,photoURL:fbUser.photoURL||'',uid:fbUser.uid,phoneNumber:''});
+      var loginId=await JCIA_FB.nextMemberId();
+      var g=D.upsertGoogleMember({displayName:fbUser.displayName||o.email.split('@')[0],email:o.email,photoURL:fbUser.photoURL||'',uid:fbUser.uid,phoneNumber:'',preferredId:loginId});
       if(g.error){ showErr(g.error); return; }
       try{ D.updateMember(g.member.id,{passwordHash:D.pwHash(o.password)}); }catch(e6){}
-      try{ mirrorMember(g.member.id,g.member.email,{name:g.member.name,email:g.member.email,photo:g.member.photo,provider:'password',joined:g.member.joined}); }catch(e7){}
+      try{ var savedLogin=await mirrorMember(g.member.id,g.member.email,{uid:fbUser.uid,name:g.member.name,email:g.member.email,photo:g.member.photo,provider:'password',memberClass:g.member.memberClass,level:g.member.level,status:g.member.status,joined:g.member.joined}); if(!savedLogin) throw new Error('Could not save your central membership profile.'); }catch(e7){ showErr('Your login worked, but your central member profile could not be saved. Please retry or contact the ministry.'); return; }
       location.href='dashboard.html'; return;
     }
     var msg = fbCode.indexOf('configuration-not-found')>=0 || fbCode.indexOf('operation-not-allowed')>=0
@@ -354,15 +357,14 @@ def build_account():
     showErr(msg + r.error);
   });
   ['googleBtn','googleBtn2'].forEach(function(id){var b=document.getElementById(id);if(b)b.addEventListener('click',async function(){
-    if(!(window.JCIA_FB && JCIA_FB.ready())){
-      alert('Google Login activates with Firebase (free): Admin \u25b8 Edit Site \u25b8 Firebase \u2014 the step-by-step guide is right there. Email and WhatsApp login work already.');
-      return;
-    }
     try{
+      if(!(await JCIA_FB.ensureReady())){alert('Membership service is unavailable. Please try again shortly.');return;}
       var u=await JCIA_FB.authGoogle();
-      var r=D.upsertGoogleMember({displayName:u.displayName,email:u.email,photoURL:u.photoURL,uid:u.uid,phoneNumber:u.phoneNumber});
+      var centralId=await JCIA_FB.nextMemberId();
+      var r=D.upsertGoogleMember({displayName:u.displayName,email:u.email,photoURL:u.photoURL,uid:u.uid,phoneNumber:u.phoneNumber,preferredId:centralId});
       if(r.error){alert(r.error);return;}
-      mirrorMember(r.member.id,r.member.email,{name:r.member.name,email:r.member.email,photo:r.member.photo,provider:'google',joined:r.member.joined});
+      var saved=await mirrorMember(r.member.id,r.member.email,{uid:u.uid,name:r.member.name,email:r.member.email,photo:r.member.photo,provider:'google',memberClass:r.member.memberClass,level:r.member.level,status:r.member.status,joined:r.member.joined});
+      if(!saved) throw new Error('Could not save your membership profile. Please contact the ministry.');
       location.href='dashboard.html';
     }catch(e2){ alert('Google sign-in: '+(JCIA_FB.ERROR_TEXT?JCIA_FB.ERROR_TEXT(e2):e2.message)); }
   });});

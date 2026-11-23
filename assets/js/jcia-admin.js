@@ -166,12 +166,33 @@
       </div>
       <div class="card mt1" style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
         <input id="mSearch" class="grow" placeholder="🔍 Search name / country / city / class…" style="flex:1;min-width:220px;padding:.7rem 1rem;border-radius:10px;border:1px solid #e5e7eb" value="${esc(q)}">
+        <button class="btn btn-gold btn-sm" id="addMBtn">➕ Add Member</button>
         <button class="btn btn-outline btn-sm" id="csvBtn">⬇ Export CSV / Excel</button>
       </div>
       ${Object.keys(countries).length ? `<div class="card mt1"><h3>By Country</h3><dl>${Object.entries(countries).sort((a, b) => b[1] - a[1]).map(e => `<div class="dl-row"><dt>${esc(e[0])}</dt><dd>${e[1]}</dd></div>`).join("")}</dl>
         <h3 class="mt1">By City</h3><dl>${Object.entries(cities).sort((a, b) => b[1] - a[1]).map(e => `<div class="dl-row"><dt>${esc(e[0])}</dt><dd>${e[1]}</dd></div>`).join("")}</dl></div>` : ""}
       ${fbSyncMsg ? `<p class="small muted mt1">${fbSyncMsg}</p>` : ""}
       <div id="mList" class="mt1">${memberRows(filt)}</div>`;
+    $("#addMBtn").onclick = async () => {
+      const name = (prompt("Member's full name:") || "").trim();
+      if (!name) return;
+      const email = (prompt("Member's email (this becomes their login):") || "").trim().toLowerCase();
+      if (!email || email.indexOf("@") < 0 || email.indexOf(".") < 0) { alert("A valid email address is required."); return; }
+      const wa = (prompt("WhatsApp number (e.g. 263771234567):", "") || "").trim();
+      const country = (prompt("Country:", "Zimbabwe") || "").trim();
+      const city = (prompt("City:", "") || "").trim();
+      if (!(window.JCIA_FB && await JCIA_FB.ensureReady())) { alert("The central membership database is not connected, so the member cannot be saved. Check Firebase in Settings, then try again."); return; }
+      try {
+        const docs = await JCIA_FB.listDocs("members");
+        if (docs.some(d => String(d.email || "").toLowerCase() === email)) { alert("A member with this email already exists in the central membership."); return; }
+        const id = await JCIA_FB.nextMemberId();
+        if (!id) { alert("Could not allocate a unique member ID. Please try again."); return; }
+        const rec = { name, email, whatsapp: wa, country, city, memberClass: "general", level: "Member", status: "active", joined: new Date().toISOString() };
+        await JCIA_FB.saveDoc("members", id, rec);
+        mergeFBMembers([Object.assign({ id }, rec)]);
+        fbSyncAt = 0; fbSyncMembers(true);
+      } catch (e2) { alert("Add member failed: " + ((e2 && e2.message) || e2)); }
+    };
     $("#csvBtn").onclick = () => D().exportCSV();
     $("#mSearch").oninput = (e) => { sessionStorage.setItem("jcia_member_q", e.target.value); PANES.members(); const i2 = $("#mSearch"); i2.focus(); i2.setSelectionRange(i2.value.length, i2.value.length); };
   };
